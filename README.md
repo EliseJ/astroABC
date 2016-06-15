@@ -14,7 +14,6 @@ For more information please read the [wiki](https://bitbucket.org/elisejennings/
 
 * mpi4py
 * multiprocessing
-* multiprocessing
 * sklearn
 * scipy
 * numpy
