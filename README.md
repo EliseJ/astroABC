@@ -1,6 +1,6 @@
-### __astroABC__ 
-#####author: Elise Jennings #####
-####elise@fnal.gov ##########
+### **astroABC** ###
+## author: Elise Jennings ##
+## elise@fnal.gov ##
 
 
 ### Description ###
