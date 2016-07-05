@@ -17,3 +17,10 @@ For more information please read the [wiki](https://bitbucket.org/elisejennings/
 * sklearn
 * scipy
 * numpy
+
+
+### License ###
+
+Copyright 2016 Elise Jennings
+
+astroABC is free software made available under the MIT License. For details see the LICENSE.txt file.
