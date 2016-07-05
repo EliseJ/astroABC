@@ -1,17 +1,18 @@
-# astroABC 
-#####author: Elise Jennings #####
-####elise@fnal.gov ##########
+### **astroABC** ###
+## author: Elise Jennings ##
+## elise@fnal.gov ##
 
 
 ### Description ###
 
-This is a parallel python implementation of an Approximate Bayesian Computation Sequential Monte Carlo sampler.
+This is a python implementation of an Approximate Bayesian Computation Sequential Monte Carlo sampler
+which can be run using mpi or multiprocessing.
 
-For more information please read the [wiki](https://bitbucket.org/elisejennings/astroabc_mp/wiki/Home).
+For more information please read the [wiki](https://bitbucket.org/elisejennings/astroabc_mpi/wiki/Home).
 
 ### Requirements ###
 
-* pathos.multiprocessing
+* mpi4py
 * multiprocessing
 * sklearn
 * scipy
