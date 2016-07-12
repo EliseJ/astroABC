@@ -22,7 +22,7 @@ def write_to_file(t,outfile,nparam,npart,theta,delta,wgt):
         f.close()
 
 def write_restart_file(restart,t,theta,wgt,dist,nparam,npart):
-	backup_files(restart)
+	if t>1:backup_files(restart)
 	data= theta.flatten().reshape(npart,nparam)
         wgts= wgt.flatten().reshape(npart,1)
         dists= dist.flatten().reshape(npart,1)

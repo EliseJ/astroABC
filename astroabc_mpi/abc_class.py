@@ -17,38 +17,9 @@ from model import *
 from io_utils import *
 from mpi_pool import MpiPool
 import multiprocessing as mp
-
 import copy_reg
 import types
 from itertools import product
-
-def _pickle_method(method):
-	"""
-	http://stackoverflow.com/questions/11726809/
-	python-efficient-workaround-for-multiprocessing-a-function-that-is-a-data-member
-	"""
-	func_name = method.im_func.__name__
-	obj = method.im_self
-	cls = method.im_class
-	cls_name = ''
-	if func_name.startswith('__') and not func_name.endswith('__'):
-		cls_name = cls.__name__.lstrip('_')
-	if cls_name:
-		func_name = '_' + cls_name + func_name
-	return _unpickle_method, (func_name, obj, cls)
-
-
-def _unpickle_method(func_name, obj, cls):
-	for cls in cls.mro():
-		try:
-			func = cls.__dict__[func_name]
-		except KeyError:
-			pass
-		else:
-			break
-	return func.__get__(obj, cls)
-
-copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 
@@ -61,6 +32,7 @@ class ABC_class(object):
 		'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
+
 
 		if self.from_restart:
                 	backup_files(self.outfile)
@@ -168,7 +140,7 @@ class ABC_class(object):
 			t,th,wgt,dist=read_restart_files(self.restart,self.nparam,self.npart)
 			self.theta[t] = th ; self.wgt[t]=wgt; self.Delta[t] = dist
 			if self.adapt_t and t <self.niter-1:
-                        	self.tol[t+1]=self.iteratively_adapt(t)
+                         	self.tol[t+1]=self.iteratively_adapt(t)
 			ctr = t+1
 		else:
 			ctr=0
@@ -275,3 +247,32 @@ class ABC_class(object):
 
 	def __setstate__(self, state):
 		self.__dict__.update(state)
+
+	
+def _pickle_method(method):
+        """
+        http://stackoverflow.com/questions/11726809/
+        python-efficient-workaround-for-multiprocessing-a-function-that-is-a-data-member
+        """
+        func_name = method.im_func.__name__
+        obj = method.im_self
+        cls = method.im_class
+        cls_name = ''
+        if func_name.startswith('__') and not func_name.endswith('__'):
+                cls_name = cls.__name__.lstrip('_')
+        if cls_name:
+                func_name = '_' + cls_name + func_name
+        return _unpickle_method, (func_name, obj, cls)
+
+
+def _unpickle_method(func_name, obj, cls):
+        for cls in cls.mro():
+                try:
+                        func = cls.__dict__[func_name]
+                except KeyError:
+                        pass
+                else:
+                        break
+        return func.__get__(obj, cls)
+
+copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
