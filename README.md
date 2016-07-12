@@ -1,7 +1,7 @@
 ### **astroABC** ###
-## author: Elise Jennings ##
-## elise@fnal.gov ##
+Version: 1.0.0
 
+Author: Elise Jennings
 
 ### Description ###
 
