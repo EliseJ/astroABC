@@ -7,8 +7,6 @@
 
 astroABC is a Python implementation of an Approximate Bayesian Computation Sequential Monte Carlo (ABC SMC) sampler for parameter estimation. 
 
-astroABC is applicable to a large suite of problems. 
-
 ### Key features include ###
 
 - Parallel sampling using MPI or multiprocessing
@@ -29,11 +27,13 @@ For more information please read the [wiki](https://bitbucket.org/elisejennings/
 
 ### Requirements ###
 
+* numpy
+* scipy
 * mpi4py
 * multiprocessing
 * sklearn
-* scipy
-* numpy
+
+
 
 
 ### License ###
