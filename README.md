@@ -21,7 +21,11 @@ astroABC is a Python implementation of an Approximate Bayesian Computation Seque
 - A module for specifying a constant, linear, log or exponential tolerance level
 - Well-documented examples and sample scripts
 
+### email list ###
 
+Please send email to astroabc@googlegroups.com to subcribe
+
+### Wiki ###
 
 For more information please read the [wiki](https://bitbucket.org/elisejennings/astroabc_mpi/wiki/Home).
 
@@ -32,8 +36,6 @@ For more information please read the [wiki](https://bitbucket.org/elisejennings/
 * mpi4py
 * multiprocessing
 * sklearn
-
-
 
 
 ### License ###
