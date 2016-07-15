@@ -28,7 +28,7 @@ astroabc@googlegroups.com
 
 ### Wiki ###
 
-For more information please read the [wiki](https://bitbucket.org/elisejennings/astroabc_mpi/wiki/Home).
+For more information please read the [wiki](https://github.com/EliseJ/astroABC/wiki).
 
 ### Requirements ###
 
