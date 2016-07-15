@@ -7,7 +7,6 @@ python:
 install:
   - pip install numpy
   - pip install nose
-  - pip install scipy
 
 script:
   - nosetests  astroabc_mpi/tests.py
