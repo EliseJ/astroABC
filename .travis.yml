@@ -7,10 +7,7 @@ python:
 install:
   - pip install numpy
   - pip install nose
-  - pip install mpi4py
-  - pip install multiprocessing
   - pip install scipy
-  - pip install sklearn
 
 script:
   - nosetests  astroabc_mpi/tests.py
