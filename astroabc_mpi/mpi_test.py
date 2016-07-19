@@ -1,4 +1,6 @@
 import numpy as np
+import os
+sys.path.append(os.getcwd())
 from .abc_class import *
 
 
