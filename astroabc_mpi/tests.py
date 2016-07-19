@@ -55,7 +55,12 @@ class test_abc:
 			assert(tol[i] > tol[i+1])
 
 		
-
+	def test_mp(self):
+		self.prop['mp']=True
+		self.prop['num_proc']=2
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
+		assert(sampler.pool)
+		
 
 
    
