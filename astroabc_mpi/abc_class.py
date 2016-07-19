@@ -24,8 +24,18 @@ from itertools import product
 
 
 class ABC_class(object):
-	'''ABC class'''
+	'''ABC SMC class'''
 	def __init__(self,nparam,npart,data,tlevels,niter,priors,**kwargs):
+		'''
+		Input:
+			nparam: number of parameters to vary in sampler
+			npart: number of particles/walkers for Sequential Monte Carlo sampler
+			data: input data vector
+			tlevels: [max,min] tolerance levels max and min values
+			niter: number of iteration levels
+			priors: list of tuples (priorname, [hyperparameters for prior])
+			kwargs: dictionary of key words ; defaults given below
+		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
 		'threshold':75,'pert_kernel':1, 'dist_type': "user",
 		'dfunc':None,'datacov':None,'outfile':None,'mpi': None, 'mp':None,'num_proc':None,

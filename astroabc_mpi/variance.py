@@ -2,11 +2,24 @@ import numpy as np
 
 
 class Variance(object):
+	'''General variance class'''
 	def __init__(self,nparam,start):
+		''' 
+                Input: 
+                nparam: parameter vector for all particles at iter t
+                start: Boolean,  True if iteration 0, False otherwise
+		'''
 		self.nparam = nparam
 		self.start=start
 		
 	def first_iter(self,t,params):
+		''' 
+		On first iteration calculate the variance as either the standard deviation
+		or covariance amongst the particles, depending on value chosen for pert_kernel
+                Input: 
+                t: Iteration number
+                params: parameter vector for all particles
+		'''
 		self.start = False
 		if self.pert_kernel ==1:
 			return [2.*np.std(params[:,ii])**2 for ii in range(self.nparam)]
@@ -85,19 +98,30 @@ class Filippi(Variance):
 
 	
 class weighted_cov(Variance):
-        ''' Input: 
-                params: parameter vector for all particles at iter t and t-1
-                delta: distances at t-1
-                tol: epsilon at t
-                wgt: particle weights at t-1
-                npart: number of particles
-        '''
+        ''' Weighted covariance matrix class''' 
         def __init__(self,nparam,npart,pert_kernel):
+		''' 
+		Input: 
+                nparam: parameter vector for all particles at iter t and t-1
+                npart: number of particles
+                pert_kernel: 1 component wise perturbation with local diag variance,
+			2 multivariate perturbation based on local covariance
+	        '''
+
                 Variance.__init__(self,nparam,True)
                 self.npart=npart
                 self.pert_kernel = pert_kernel
 
 	def get_var(self,t,pms,wgt):
+		'''Method to calculate the weighted particle covariance matrix 
+		https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_covariance
+		Input:
+		t: iteration level
+		pms: parameter vector for all particles from previous iteration
+		wgt: weights from previous iteration
+		Returns:
+			Twice the weighted particle covariance (Beaumont et al 2009)
+		'''
                 tm1 = t-1
                 if t==0:
                 	return self.first_iter(t,pms)
@@ -117,7 +141,6 @@ class weighted_cov(Variance):
 						var[kk,jj] = coeff*np.sum(wgt*(pms[:,kk] - wgt_mean[kk])*(pms[:,jj] - wgt_mean[jj]))
                                                 if kk == jj and var[kk,jj]==0: #delta function for one parameter
                                                     var[kk,jj] = 1.E-10
-			#print "var",var
 			return 2*var
 
 
