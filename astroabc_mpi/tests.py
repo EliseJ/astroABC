@@ -32,4 +32,13 @@ class test_abc:
 
     def test(self):
         sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-        assert(np.mean(sampler.theta) < np.inf)
+	for i in range(self.niter):
+		param_means = [np.mean(self.theta[i][:,j]) for j in range(self.nparam)]
+		for p in range(self.nparam):
+        		assert(param_means[p] < np.inf)
+        #assert(np.mean(sampler.theta) < np.inf)
+
+
+
+
+
