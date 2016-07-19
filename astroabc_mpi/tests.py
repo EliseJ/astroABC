@@ -38,7 +38,7 @@ class test_abc:
 
 
 	def test_tolerance(self):
-		tol = Tolerance(self.tol_type,self.tlevels[1],self.tlevels[0],self.niter).tol
+		tol = Tolerance('exp',self.tlevels[1],self.tlevels[0],self.niter).tol
 		for i in range(len(tol)-1):
 			assert(tol[i] > tol[i+1])
 
