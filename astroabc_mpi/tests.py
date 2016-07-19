@@ -60,6 +60,10 @@ class test_abc:
 		self.prop['num_proc']=2
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
 		assert(sampler.pool)
+	def test_mpi(self):
+		self.prop['mpi']=True
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
+		assert(sampler.pool)
 		
 
 
