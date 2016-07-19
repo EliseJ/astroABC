@@ -29,35 +29,8 @@ class test_abc:
 		self.prior = zip(priorname,hyperp)
 
 
-	def test(self):
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-		for i in range(self.niter):
-			param_means = [np.mean(sampler.theta[i][:,j]) for j in range(self.nparam)]
-			for p in range(self.nparam):
-				assert(param_means[p] < np.inf)
-
-
-	def test_tolerance(self):
-		tol = Tolerance('exp',self.tlevels[1],self.tlevels[0],self.niter).tol
-		for i in range(len(tol)-1):
-			assert(tol[i] > tol[i+1])
-
-		tol = Tolerance('const',self.tlevels[1],self.tlevels[0],self.niter).tol
-		for i in range(len(tol)-1):
-			assert(tol[i] == tol[i+1])
-
-		tol = Tolerance('linear',self.tlevels[1],self.tlevels[0],self.niter).tol
-		for i in range(len(tol)-1):
-			assert(tol[i] > tol[i+1])
-		
-		tol = Tolerance('log',self.tlevels[1],self.tlevels[0],self.niter).tol
-		for i in range(len(tol)-1):
-			assert(tol[i] > tol[i+1])
-
-		
-	def test_mp(self):
-		self.prop['mp']=True
-		self.prop['num_proc']=2
+	def test_mpi(self):
+		self.prop['mpi']=True
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
 		assert(sampler.pool)
 		

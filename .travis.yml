@@ -15,4 +15,5 @@ install:
 
 script:
   - nosetests  astroabc_mpi/tests.py
+  - mpirun -np 2 python astroabc_mpi/mpi_test.py
 
