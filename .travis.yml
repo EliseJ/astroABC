@@ -10,10 +10,10 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda update --yes conda
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy nose scikit-learn
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy nose scikit-learn mpi4py
 
 
 script:
   - nosetests  astroabc_mpi/tests.py
-  - mpiexec -n 2 python astroabc_mpi/mpi_test.py
+  - mpirun -np 2 python astroabc_mpi/mpi_test.py
 
