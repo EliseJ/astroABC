@@ -16,17 +16,17 @@ class test_abc:
         	self.tlevels = [.7,0.005]
         	self.model_type = "normal"
 
-	self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
-	'pert_kernel':2, 'dist_type': "user",'dfunc':dist,
-	'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
-	'restart':"restart_test.txt",'from_restart':False}
+		self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+		'pert_kernel':2, 'dist_type': "user",'dfunc':dist,
+		'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
+		'restart':"restart_test.txt",'from_restart':False}
 
-	self.param = [0.1411]
-	self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
+		self.param = [0.1411]
+		self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
 
-	priorname  = ["normal"]
-	hyperp = [[x+0.2  ,0.05*2] for x in self.param]
-	self.prior = zip(priorname,hyperp)
+		priorname  = ["normal"]
+		hyperp = [[x+0.2  ,0.05*2] for x in self.param]
+		self.prior = zip(priorname,hyperp)
 
 
 	def test(self):
@@ -38,9 +38,23 @@ class test_abc:
 
 
 	def test_tolerance(self):
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-		for i in range(len(sampler.tol)-1):
-			assert(sampler.tol[i] >= sampler.tol[i+1])
+		tol = Tolerance(self.tol_type,self.tlevels[1],self.tlevels[0],self.niter).tol
+		for i in range(len(tol)-1):
+			assert(tol[i] > tol[i+1])
+
+		tol = Tolerance('const',self.tlevels[1],self.tlevels[0],self.niter).tol
+		for i in range(len(tol)-1):
+			assert(tol[i] = tol[i+1])
+
+		tol = Tolerance('linear',self.tlevels[1],self.tlevels[0],self.niter).tol
+		for i in range(len(tol)-1):
+			assert(tol[i] > tol[i+1])
+		
+		tol = Tolerance('log',self.tlevels[1],self.tlevels[0],self.niter).tol
+		for i in range(len(tol)-1):
+			assert(tol[i] > tol[i+1])
+
+		
 
 
 
