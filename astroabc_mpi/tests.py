@@ -44,7 +44,7 @@ class test_abc:
 
 		tol = Tolerance('const',self.tlevels[1],self.tlevels[0],self.niter).tol
 		for i in range(len(tol)-1):
-			assert(tol[i] = tol[i+1])
+			assert(tol[i] == tol[i+1])
 
 		tol = Tolerance('linear',self.tlevels[1],self.tlevels[0],self.niter).tol
 		for i in range(len(tol)-1):
