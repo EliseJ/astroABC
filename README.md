@@ -1,4 +1,7 @@
 ### **astroABC** ###
+
+[![Build Status](https://travis-ci.com/EliseJ/astroABC.svg?token=LXdoQwTqixvxvKudVHQ7&branch=master)](https://travis-ci.com/EliseJ/astroABC)
+
 Version: 1.0.0
 
 Author: Elise Jennings
