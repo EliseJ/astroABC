@@ -149,7 +149,7 @@ class test_abc:
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
 	
-	 def test_leodoitwolf_variance(self):
+	def test_leodoitwolf_variance(self):
                 prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
                 'pert_kernel':2, 'variance_method':3, 'dist_type': "user",'dfunc':dist,
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
