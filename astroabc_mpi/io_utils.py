@@ -58,7 +58,7 @@ def write_restart_file(restart,t,theta,wgt,dist,nparam,npart):
         f.close()
 
 def backup_files(filename):
-	 '''Method to backup file before writing any output
+	'''Method to backup file before writing any output
         Input: 
         filename - str, filename
 	'''
@@ -70,7 +70,7 @@ def backup_files(filename):
 
 
 def read_restart_files(restart,nparam,npart):	
-	 '''Method to read restart txt file
+	'''Method to read restart txt file
         Input: 
         restart - str, filename
         nparam - int, number of parameters
