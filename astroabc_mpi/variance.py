@@ -22,21 +22,34 @@ class Variance(object):
 		'''
 		self.start = False
 		if self.pert_kernel ==1:
-			return [2.*np.std(params[:,ii])**2 for ii in range(self.nparam)]
+			return np.diag([2.*np.std(params[:,ii])**2 for ii in range(self.nparam)])
 		elif self.pert_kernel ==2:
 			return 2.*np.cov(params.T)
 
 class TVZ(Variance):
+	'''Simple variance estimate (Turner & Van Zandt 2012) '''
 	def __init__(self,nparam,pert_kernel):
+		''' Input: 
+                nparam: parameter vector for all particles at iter t 
+                pert_kernel: 1 component wise perturbation with local diag variance,
+                        2 multivariate perturbation based on local covariance
+                '''
 		Variance.__init__(self,nparam,True)		
 		self.pert_kernel = pert_kernel
 
 	def get_var(self,t,params):
+		''' Input: 
+                t: iteration level
+                pms: parameter vector for all particles from previous iteration
+                Returns:
+                        pert_kernel =1:twice the diagonal variance
+                        pert_kernel =2:twice the sample covariance 
+		'''
 		if self.start: 
 			return self.first_iter(t,params)
 		else:
 			if self.pert_kernel ==1:
-				return [2.*np.std(params[:,ii])**2 for ii in range(self.nparam)]
+				return np.diag([2.*np.std(params[:,ii])**2 for ii in range(self.nparam)])
 			elif self.pert_kernel ==2:
 				return 2.*np.cov(params.T)
 
