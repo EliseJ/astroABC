@@ -9,7 +9,7 @@ def dist(d,x):
 class test_abc:
 
 	def setUp(self):
-		self.nparam =1
+		self.nparam =2
         	self.npart = 100
         	self.nsamples =1000
         	self.niter =15
@@ -21,7 +21,7 @@ class test_abc:
 		'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
 		'restart':"restart_test.txt",'from_restart':False}
 
-		self.param = [0.1411]
+		self.param = [0.1411,0.8723]
 		self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
 
 		priorname  = ["normal"]
