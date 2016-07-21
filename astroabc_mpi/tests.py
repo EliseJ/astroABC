@@ -12,8 +12,8 @@ class test_abc:
 		self.nparam =2
         	self.npart = 100
         	self.nsamples =1000
-        	self.niter =15
-        	self.tlevels = [.7,0.005]
+        	self.niter =5
+        	self.tlevels = [.7,0.1]
         	self.model_type = "normal"
 
 		self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
@@ -29,8 +29,10 @@ class test_abc:
 		self.prior = zip(priorname,hyperp)
 
 
-	def test(self):
+	def test_sample(self):
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
+		model_sim = Model(model_type,nsamples).make_mock
+		sampler.sample(model_sim)
 		for i in range(self.niter):
 			param_means = [np.mean(sampler.theta[i][:,j]) for j in range(self.nparam)]
 			for p in range(self.nparam):
@@ -63,10 +65,9 @@ class test_abc:
 
 	def test_variance(self):
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,1,self.prior,**self.prop)
-		for p1 in self.nparam:
-			for p2 in self.nparam:
+		for p1 in range(self.nparam):
+			for p2 in range(self.nparam):
 				assert(sampler.variance[p1][p2] < np.inf)
-		theta = sampler.theta
 		
 		
 
