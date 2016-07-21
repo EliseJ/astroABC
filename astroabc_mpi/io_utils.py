@@ -32,7 +32,7 @@ def write_to_file(t,outfile,nparam,npart,theta,delta,wgt):
         f.close()
 
 def write_restart_file(restart,t,theta,wgt,dist,nparam,npart):
-	 '''Method to write restart txt file
+	'''Method to write restart txt file
         Input: 
         restart - str, filename
         t - iteration level
