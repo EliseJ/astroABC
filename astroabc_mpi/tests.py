@@ -17,7 +17,7 @@ class test_abc:
         	self.model_type = "normal"
 
 		self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
-		'pert_kernel':2, 'dist_type': "user",'dfunc':dist,
+		'pert_kernel':2, 'variance_method':0, 'dist_type': "user",'dfunc':dist,
 		'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
 		'restart':"restart_test.txt",'from_restart':False}
 

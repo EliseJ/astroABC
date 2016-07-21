@@ -37,7 +37,7 @@ class ABC_class(object):
 			kwargs: dictionary of key words ; defaults given below
 		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
-		'threshold':75,'pert_kernel':1, 'dist_type': "user",
+		'threshold':75,'pert_kernel':1,'variance_method':0, 'dist_type': "user",
 		'dfunc':None,'datacov':None,'outfile':None,'mpi': None, 'mp':None,'num_proc':None,
 		'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
@@ -67,9 +67,14 @@ class ABC_class(object):
 
 		self.allocate()
 		self.tol = Tolerance(self.tol_type,tlevels[1],tlevels[0],niter).tol
-		self.Variance = weighted_cov(nparam,npart,self.pert_kernel) 
-		#self.Variance = Filippi(nparam,npart,self.pert_kernel) 
-		#self.Variance = TVZ(nparam,self.pert_kernel) 
+
+		if self.variance_method ==1:
+			self.Variance = Filippi(nparam,npart,self.pert_kernel) 
+		elif self.variance_method ==2:
+			self.Variance = TVZ(nparam,self.pert_kernel) 
+		else: #default
+			self.Variance = weighted_cov(nparam,npart,self.pert_kernel) 
+
 		self.unpack_priors(priors)
 		self.end_sampling = False
 		if self.verbose and self.master==0:

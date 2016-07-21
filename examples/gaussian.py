@@ -69,7 +69,7 @@ if __name__ == "__main__":
             num_proc = pconfig.num_proc
 
         prop={'tol_type':pconfig.tol_type,"verbose":pconfig.verbose,'adapt_t':pconfig.adapt_t,'threshold':pconfig.threshold,
-        'pert_kernel':pconfig.pert_kernel, 'dist_type': pconfig.dist_type,'dfunc':dist_metric, 'restart':restartF,
+        'pert_kernel':pconfig.pert_kernel,'variance_method':0, 'dist_type': pconfig.dist_type,'dfunc':dist_metric, 'restart':restartF,
         'outfile':outF,'mpi':pconfig.mpi,'mp':pconfig.mp,'num_proc':num_proc, 'from_restart':pconfig.from_restart}
 
         ###########
