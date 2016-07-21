@@ -1,4 +1,6 @@
-### **astroABC** ###
+![](https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg)
+
+
 
 [![Build Status](https://travis-ci.com/EliseJ/astroABC.svg?token=LXdoQwTqixvxvKudVHQ7&branch=master)](https://travis-ci.com/EliseJ/astroABC)
 [![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/EliseJ/astroABC/blob/master/LICENSE.txt)
