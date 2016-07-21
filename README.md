@@ -1,4 +1,4 @@
-![](https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg)
+![https://github.com/EliseJ/astroABC/wiki](https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg)
 
 
 
