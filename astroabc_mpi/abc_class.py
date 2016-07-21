@@ -181,7 +181,11 @@ class ABC_class(object):
 		if not(t): 
 			self.wgt[t] =1./self.npart
 		
-		if t: 	self.variance = self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1])
+		if t: 	
+			if self.variance_method ==1:
+				self.variance = self.Variance.get_var(t,self.theta[t-1],self.Delta[t-1],self.tol[t-1],self.wgt[t-1])
+			else:
+				self.variance = self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1])
 		if self.mpi or self.mp:
         		pool_outputs = self.pool.map(self.step, [t]*(self.npart))
 			for i in range(self.npart):

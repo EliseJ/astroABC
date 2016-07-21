@@ -42,12 +42,12 @@ class test_abc:
 		model_sim = Model(self.model_type,self.nsamples).make_mock
 		sampler.sample(model_sim)
 
-		self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
                 'pert_kernel':2, 'variance_method':0, 'dist_type': "user",'dfunc':dist,
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':True}
 
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,5,self.prior,**self.prop)
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,5,self.prior,**prop)
 		model_sim = Model(self.model_type,self.nsamples).make_mock
 		sampler.sample(model_sim)
 		param_means = [np.mean(sampler.theta[-1][:,j]) for j in range(self.nparam)]
@@ -74,28 +74,58 @@ class test_abc:
 
 		
 	def test_mp(self):
-		self.prop['mp']=True
-		self.prop['num_proc']=2
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
+		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+                'pert_kernel':1, 'variance_method':0, 'dist_type': "user",'dfunc':dist,
+                'outfile':"mpi_test.txt",'mpi':False,'mp':True,'num_proc':2,
+                'restart':"restart_test.txt",'from_restart':False}
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**prop)
 		assert(sampler.pool)
 
-	def test_weightedvariance(self):
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**self.prop)
-		model_sim = Model(self.model_type,self.nsamples).make_mock
-		sampler.sample(model_sim)
-		for p1 in range(self.nparam):
-			for p2 in range(self.nparam):
-				assert(sampler.variance[p1][p2] < np.inf)
-		
-		self.prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+	def test_weightedvariance_k1(self):
+		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
                 'pert_kernel':1, 'variance_method':0, 'dist_type': "user",'dfunc':dist,
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
-		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**self.prop)
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
 		model_sim = Model(self.model_type,self.nsamples).make_mock
 		sampler.sample(model_sim)
 		for p1 in range(self.nparam):
 			assert(sampler.variance[p1][p1] < np.inf)
+
+	 def test_weightedvariance_k2(self):
+		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+                'pert_kernel':2, 'variance_method':0, 'dist_type': "user",'dfunc':dist,
+                'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
+                'restart':"restart_test.txt",'from_restart':False}
+                sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
+                model_sim = Model(self.model_type,self.nsamples).make_mock
+                sampler.sample(model_sim)
+                for p1 in range(self.nparam):
+                        for p2 in range(self.nparam):
+                                assert(sampler.variance[p1][p2] < np.inf)
+
+
+	def test_filippivariance_k1(self):
+		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+                'pert_kernel':1, 'variance_method':1, 'dist_type': "user",'dfunc':dist,
+                'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
+                'restart':"restart_test.txt",'from_restart':False}
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
+                model_sim = Model(self.model_type,self.nsamples).make_mock
+                sampler.sample(model_sim)
+                for p1 in range(self.nparam):
+                        assert(sampler.variance[p1][p1] < np.inf)
+		
+	def test_filippivariance_k1(self):
+                prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+                'pert_kernel':2, 'variance_method':1, 'dist_type': "user",'dfunc':dist,
+                'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
+                'restart':"restart_test.txt",'from_restart':False}
+                sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
+                model_sim = Model(self.model_type,self.nsamples).make_mock
+                sampler.sample(model_sim)
+                for p1 in range(self.nparam):
+                        assert(sampler.variance[p1][p1] < np.inf)
 
 
 
