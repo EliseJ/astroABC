@@ -24,7 +24,7 @@ class test_abc:
 		self.param = [0.1411,0.8723]
 		self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
 
-		priorname  = ["normal"]
+		priorname  = ["normal", "normal"]
 		hyperp = [[x+0.2  ,0.05*2] for x in self.param]
 		self.prior = zip(priorname,hyperp)
 
