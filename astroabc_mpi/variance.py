@@ -130,12 +130,13 @@ class weighted_cov(Variance):
 			#print "Check", wgt.sum(), wgt.sum()**2, (wgt**2).sum()
 			coeff = wgt.sum() / (wgt.sum()**2 - (wgt**2).sum()) 
 			wgt_mean = np.average(pms, axis=0, weights=wgt)
+			var = np.diag(np.zeros(self.nparam))
 			if self.pert_kernel ==1:
-				var = np.zeros(self.nparam)
+				#var = np.zeros(self.nparam)
 				for kk in range(self.nparam):
-					var[kk] = coeff*np.sum(wgt * (pms[:,kk] - wgt_mean[kk])**2)
+					var[kk][kk] = coeff*np.sum(wgt * (pms[:,kk] - wgt_mean[kk])**2)
 			elif self.pert_kernel ==2:
-				var = np.diag(np.zeros(self.nparam))
+				#var = np.diag(np.zeros(self.nparam))
 				for kk in range(self.nparam):
 					for jj in range(self.nparam):
 						var[kk,jj] = coeff*np.sum(wgt*(pms[:,kk] - wgt_mean[kk])*(pms[:,jj] - wgt_mean[jj]))
