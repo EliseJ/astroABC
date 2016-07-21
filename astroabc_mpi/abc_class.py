@@ -24,7 +24,7 @@ from itertools import product
 
 
 class ABC_class(object):
-	'''ABC SMC class'''
+	'''Approximate Bayesian Computation Sequentual Monte Carlo class'''
 	def __init__(self,nparam,npart,data,tlevels,niter,priors,**kwargs):
 		'''
 		Input:
@@ -100,11 +100,18 @@ class ABC_class(object):
 			self.prior[i] = np.vectorize(pcls.prior)
 			self.priorprob[i]=np.vectorize(pcls.return_priorprob)
 	def allocate(self):
+		'''allocate numpy arrays for parameter values, weights and distances'''
 		self.theta=np.zeros([self.niter,self.npart,self.nparam])	
 		self.wgt=np.zeros([self.niter,self.npart])
 		self.Delta=np.zeros([self.niter,self.npart])
 
 	def dist(self,x):
+		'''distance metric function
+		Input:
+		x - simulationed data sample at proposed parameter value
+		Returns:
+		distance to be compared to the threshold at iteration t
+		'''
         	if self.dist_type == "mean":
 			return np.sum(np.abs(np.mean(x,axis=0) - np.mean(self.data,axis=0)))
         	if self.dist_type == "chi2":
@@ -170,10 +177,10 @@ class ABC_class(object):
 	def sample_loop(self,t):
 		'''
 		At each iteration t: 
-			-each particle find point in parameter space that satifies rho(model(theta),data)<tol
+			-each particle finds a point in parameter space that satifies rho(model(theta),data)<tol
 			-weights are calculated for each particle
 			-variances of parameters calculated
-			-weights amongst particles are normalized
+			-weights are normalized
 		input:
 			iter t
 		'''
@@ -250,7 +257,6 @@ class ABC_class(object):
                         print "Error computing Kernel or weights...", kernels, self.wgt[tm1]
                         sys.exit(1)
                 priorproduct = np.prod([f[0](f[1]) for f in np.vstack((self.priorprob,self.theta[t][Pid])).T])
-                #self.wgt[t][Pid] = priorproduct/(np.sum(self.wgt[tm1]*kernels))
 		return priorproduct/(np.sum(self.wgt[tm1]*kernels))
 
 

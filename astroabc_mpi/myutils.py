@@ -1,6 +1,17 @@
 import sys
 
 def check_input(nparam,npart,priors,t1,t2,dtype,datacov,dfunc):
+	'''Simple error checking on input before we start sampling
+	Input:
+	nparam - number of paramerer
+	npart - number of particles
+	priors - priots
+	t1 - max treshold
+	t2 - min threshold
+	dtype - data covariance matrix, this toy setting for testing astroABC
+	datacov - data covariance
+	dfunc - distance function
+	'''
 	if  npart ==1 or npart < nparam:
 		print ("\t Too few particles requested for the number of parameters. npart=%d nparam=%d") % (npart,nparam)
                 print "\t exiting..."
@@ -23,6 +34,14 @@ def check_input(nparam,npart,priors,t1,t2,dtype,datacov,dfunc):
 		sys.exit(0)
 
 def print_header(npart,niter,tol_type,tlevels,priors):
+	'''print header to screen
+	Input:
+	npart - number of particles
+	niter - number of iterations
+	tol_type - decreasing tolerance level setting
+	tlevels - max/min threshold levels
+	priors - priors for parameters 
+	'''
 	print "\t \t"
 	print "\t ########################     astroABC     ########################\t"
 	print "\t \t"

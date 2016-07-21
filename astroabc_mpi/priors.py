@@ -4,13 +4,22 @@ import time
 
 
 class Prior_class(object):
-        '''priors to choose from , prior is array of keywords ["uniform, "gauss"] for each param"'''
+        '''Prior class''' 
+	
         def __init__(self,priorname,hyperparams):
+		'''Input:
+		priorname - array of keywords ["uniform, "gauss"] for each param
+		hyperparams - array of arrays [[min,max], [mu, variance],...] for each param
+		'''
                 self.priorname=priorname
                 self.hyperparams = hyperparams
         
         def return_priorprob(self,value):
-		#np.random.seed()
+		'''Input:
+		value -  random variable
+		Returns:
+		probability of rv given the prior dist
+		'''
                 if self.priorname =="gamma":
                         x = 1./self.hyperparams[1]
                         return scipy.stats.gamma.pdf(value, self.hyperparams[0],scale=x)
@@ -22,6 +31,9 @@ class Prior_class(object):
 
 
         def prior(self):
+		'''
+		Returns a random variable from the prior distribution
+		'''
 		np.random.seed()
                 if self.priorname =="gamma":
                         k=self.hyperparams[0]
