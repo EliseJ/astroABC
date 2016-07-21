@@ -72,6 +72,8 @@ class ABC_class(object):
 			self.Variance = Filippi(nparam,npart,self.pert_kernel) 
 		elif self.variance_method ==2:
 			self.Variance = TVZ(nparam,self.pert_kernel) 
+		elif self.variance_method ==3:
+			self.Variance = Leodoit_Wolf(nparam,self.pert_kernel) 
 		else: #default
 			self.Variance = weighted_cov(nparam,npart,self.pert_kernel) 
 
@@ -184,7 +186,7 @@ class ABC_class(object):
 		if t: 	
 			if self.variance_method ==1:
 				self.variance = self.Variance.get_var(t,self.theta[t-1],self.Delta[t-1],self.tol[t-1],self.wgt[t-1])
-			elif self.variance_method ==2:
+			elif self.variance_method ==2 or self.variance_method ==3:
 				self.variance = self.Variance.get_var(t,self.theta[t-1])
 			else:
 				self.variance = self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1])

@@ -148,6 +148,17 @@ class test_abc:
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
+	
+	 def test_leodoitwolf_variance(self):
+                prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
+                'pert_kernel':2, 'variance_method':3, 'dist_type': "user",'dfunc':dist,
+                'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
+                'restart':"restart_test.txt",'from_restart':False}
+                sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
+                model_sim = Model(self.model_type,self.nsamples).make_mock
+                sampler.sample(model_sim)
+                for p1 in range(self.nparam):
+                        assert(sampler.variance[p1][p1] < np.inf)
 
 
 

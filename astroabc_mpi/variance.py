@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.covariance import ledoit_wolf
 
 
 class Variance(object):
@@ -154,5 +155,28 @@ class weighted_cov(Variance):
 
 
 
+class Leodoit_Wolf(Variance):
+        '''l2 shrinkage with the Ledoit-Wolf estimator'''
+        def __init__(self,nparam,pert_kernel):
+                ''' Input: 
+                nparam: parameter vector for all particles at iter t 
+                pert_kernel: 1 component wise perturbation with local diag variance,
+                        2 multivariate perturbation based on local covariance
+                '''
+                Variance.__init__(self,nparam,True)
+                self.pert_kernel = pert_kernel
+
+        def get_var(self,t,params):
+                ''' Input: 
+                t: iteration level
+                pms: parameter vector for all particles from previous iteration
+                Returns:
+		particle covariance with Ledoit-Wolf estimator
+                '''
+                if self.start:
+                        return self.first_iter(t,params)
+                else:
+                    var, _  =  ledoit_wolf(params)
+		return var
 
 
