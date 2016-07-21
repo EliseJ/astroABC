@@ -95,7 +95,7 @@ class test_abc:
 		model_sim = Model(self.model_type,self.nsamples).make_mock
 		sampler.sample(model_sim)
 		for p1 in range(self.nparam):
-			assert(sampler.variance[p1] < np.inf)
+			assert(sampler.variance[p1][p1] < np.inf)
 
 
 
