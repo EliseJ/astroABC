@@ -60,6 +60,14 @@ class test_abc:
 		self.prop['num_proc']=2
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
 		assert(sampler.pool)
+
+	def test_variance(self):
+		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,1,self.prior,**self.prop)
+		for p1 in self.nparam:
+			for p2 in self.nparam:
+				assert(sampler.variance[p1][p2] < np.inf)
+		theta = sampler.theta
+		
 		
 
 
