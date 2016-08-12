@@ -19,10 +19,14 @@ astroABC is a Python implementation of an Approximate Bayesian Computation Seque
 ## Key features include ##
 
 - Parallel sampling using MPI or multiprocessing
-- A Sequential Monte Carlo sampler following Beaumont et al. 2009
-- A method for iterative adapting tolerance levels using the qth quantile of the distance for t iterations (Drovandi & Pettitt 2011)
-- Scikit-learn covariance matrix estimation using Ledoit-Wolf shrinkage for singular matrices
-- A module for specifying particle covariance using method proposed by Turner & Van Zandt (2012), optimal covariance matrix  for a multivariate normal perturbation kernel (Filippi et al 2012) and a weighted covariance metric (Beaumont et al 2009)
+- A Sequential Monte Carlo sampler following [Beaumont et al. 2009]
+[Beaumont et al. 2009]:https://arxiv.org/abs/0805.2256
+- A method for iterative adapting tolerance levels using the qth quantile of the distance for t iterations ([Turner & Van Zandt (2012)])
+- Scikit-learn covariance matrix estimation using [Ledoit-Wolf shrinkage] for singular matrices
+[Ledoit-Wolf shrinkage]:http://scikit-learn.org/stable/modules/covariance.html
+- A module for specifying particle covariance using method proposed by [Turner & Van Zandt (2012)], optimal covariance matrix  for a multivariate normal perturbation kernel ([Filippi et al 2013]) and a weighted covariance metric (Beaumont et al 2009)
+[Turner & Van Zandt (2012)]:http://link.springer.com/article/10.1007/s11336-013-9381-x
+[Filippi et al 2013]:https://www.degruyter.com/abstract/j/sagmb.2013.12.issue-1/sagmb-2012-0069/sagmb-2012-0069.xml
 - Restart files output frequently so an interrupted sampling run can be resumed at any iteration
 - Output and restart files are backed up every iteration before new output is written
 - User defined distance metric and simulation methods
