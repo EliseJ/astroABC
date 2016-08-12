@@ -1,7 +1,8 @@
 
 
-<a href="https://github.com/EliseJ/astroABC"><img src="https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg" align="left" hspace="10" vspace="7"></a>
+<a href="https://github.com/EliseJ/astroABC"><img src="https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg" align="left" hspace="10" vspace="6"></a>
 
+<br>
 
 [![Build Status](https://travis-ci.com/EliseJ/astroABC.svg?token=LXdoQwTqixvxvKudVHQ7&branch=master)](https://travis-ci.com/EliseJ/astroABC)
 [![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/EliseJ/astroABC/blob/master/LICENSE.txt)
@@ -18,7 +19,6 @@ Author: Elise Jennings
 **astroABC** is a Python implementation of an Approximate Bayesian Computation Sequential Monte Carlo (ABC SMC) sampler for parameter estimation. 
 
 
-<br>
 <br>
 <br>
 
