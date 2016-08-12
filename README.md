@@ -16,7 +16,7 @@ Author: Elise Jennings
 
 astroABC is a Python implementation of an Approximate Bayesian Computation Sequential Monte Carlo (ABC SMC) sampler for parameter estimation. 
 
-### Key features include ###
+## Key features include ##
 
 - Parallel sampling using MPI or multiprocessing
 - A Sequential Monte Carlo sampler following Beaumont et al. 2009
@@ -30,16 +30,23 @@ astroABC is a Python implementation of an Approximate Bayesian Computation Seque
 - A module for specifying a constant, linear, log or exponential tolerance level
 - Well-documented examples and sample scripts
 
-### Google group ###
-
-Please post topics or suggestions to https://groups.google.com/forum/#!aboutgroup/astroabc 
-astroabc@googlegroups.com 
 
 ### Wiki ###
 
 For more information please read the [wiki](https://github.com/EliseJ/astroABC/wiki).
 
-### Requirements ###
+### Getting started ###
+
+Install astroABC using pip
+
+```
+$ sudo pip install astroabc
+```
+
+or git clone the repository using the url above. 
+Check the dependencies listed in the next section are installed.
+
+### Dependencies ###
 
 * numpy
 * scipy
@@ -47,6 +54,15 @@ For more information please read the [wiki](https://github.com/EliseJ/astroABC/w
 * multiprocessing
 * sklearn
 
+Python distributions like [Anaconda] have most of what is needed. 
+You can then conda install or pip install all of the required dependencies.
+
+```
+$ conda install  numpy scipy scikit-learn mpi4py
+$ pip install numpy scipy scikit-learn mpi4py
+```
+
+[Anaconda]:https://www.continuum.io/downloads
 
 ### License ###
 
