@@ -73,7 +73,7 @@ def setup_astroabc():
 		""",
 
 		#packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-		packages=["astroabc_mpi", "examples"],
+		packages=["astroabc", "examples"],
 		)
 		            
 if __name__ == '__main__':
