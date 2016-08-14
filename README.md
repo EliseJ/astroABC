@@ -5,6 +5,7 @@
 <br>
 
 [![Build Status](https://travis-ci.com/EliseJ/astroABC.svg?token=LXdoQwTqixvxvKudVHQ7&branch=master)](https://travis-ci.com/EliseJ/astroABC)
+[![Latest Version](http://img.shields.io/pypi/v/astroabc.svg?style=flat)](https://pypi.python.org/pypi/astroabc/)
 [![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](https://github.com/EliseJ/astroABC/blob/master/LICENSE.txt)
  [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/EliseJ/astroABC/issues)
 
