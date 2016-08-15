@@ -231,7 +231,7 @@ class ABC_class(object):
 		
 	def iteratively_adapt(self,t):
 		'''
-		Drovandi & Pettitt 2011, use qth quantileof the distance for t iterations
+		Turner & Van Zandt (2012), use qth quantileof the distance for t iterations
 		unless we hit the tmin requested
 		'''
 		new_tol= np.percentile(self.Delta[t], self.threshold)
