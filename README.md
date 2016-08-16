@@ -52,7 +52,7 @@ For more information please read the [wiki](https://github.com/EliseJ/astroABC/w
 Install astroABC using pip
 
 ```
-$ sudo pip install astroabc
+$ pip install astroabc
 ```
 
 or git clone the repository using the url above. 
