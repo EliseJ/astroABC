@@ -37,7 +37,8 @@ Author: Elise Jennings
 - Restart files output frequently so an interrupted sampling run can be resumed at any iteration
 - Output and restart files are backed up every iteration before new output is written
 - User defined distance metric and simulation methods
-- A module for specifying heterogeneous parameter priors 
+- A class for specifying heterogeneous parameter priors 
+- Methods for drawing from any non-standard prior PDF e.g using Planck/WMAP chains 
 - A module for specifying a constant, linear, log or exponential tolerance level
 - Well-documented examples and sample scripts
 
