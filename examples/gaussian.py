@@ -1,11 +1,13 @@
 #simple example script for multiGaussian data
-import sys
-sys.path.append("../astroabc_mpi")
-from abc_class import *
+try:
+	import astroabc
+except ImportError:
+	raise ImportError("Please install the astroABC package to use the sampler\n" +
+                            "$> pip install astroabc")
 from parse_params import *
 import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
-param_file = os.path.join(ROOT_dir,'params.ini')
+param_file = os.path.join(ROOT_dir,'gaussian_params.ini')
 
 def dist_metric(d,x):
 	'''Distance metric: rho'''
@@ -17,21 +19,18 @@ def simulation(param):
 
 def main():
 
-	#make some fake data
 	param = np.array([true_p0,true_p1])
-	#param = np.random.random(nparam)
-	print "\t"
 	print "\t True param value:", param
 
-	data = Model(model_type,nsamples).make_mock(param)
-	#or read data from file
-	#data = np.loadtxt(datafile)
+	#make some fake data
+	data = astroabc.Model(model_type,nsamples).make_mock(param)
 
 	#Create an instance of the ABC class	
-	sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
+	sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
 
 	#specify the simulation method
-	model_sim = Model(model_type,nsamples).make_mock 
+	model_sim = astroabc.Model(model_type,nsamples).make_mock 
+
 	#or provide a method
 	#model_sim = simulation()
 

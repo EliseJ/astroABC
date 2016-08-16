@@ -38,7 +38,7 @@ class ABC_class(object):
 		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
 		'threshold':75,'pert_kernel':1,'variance_method':0, 'dist_type': "user",
-		'dfunc':None,'datacov':None,'outfile':None,'mpi': None, 'mp':None,'num_proc':None,
+		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,
 		'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
