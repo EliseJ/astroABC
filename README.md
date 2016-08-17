@@ -26,7 +26,9 @@ Author: Elise Jennings
 ## Key features ##
 
 - Parallel sampling using MPI or multiprocessing
-- A Sequential Monte Carlo sampler following [Beaumont et al. 2009]
+- A Sequential Monte Carlo sampler (see e.g. [Toni et al 2009], [Beaumont et al. 2009], [Sisson & Fan 2010])
+[Toni et al. 2009]:https://arxiv.org/abs/0901.1925
+[Sisson & Fan 2010]:http://arxiv.org/abs/1001.2058
 [Beaumont et al. 2009]:https://arxiv.org/abs/0805.2256
 - A method for iterative adapting tolerance levels using the qth quantile of the distance for t iterations ([Turner & Van Zandt (2012)])
 - Scikit-learn covariance matrix estimation using [Ledoit-Wolf shrinkage] for singular matrices
