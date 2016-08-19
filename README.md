@@ -33,8 +33,8 @@ Author: Elise Jennings
 - A module for specifying particle covariance using method proposed by [Turner & Van Zandt (2012)], optimal covariance matrix  for a multivariate normal perturbation kernel ([Filippi et al 2013]) and a weighted covariance metric (Beaumont et al 2009)
 [Turner & Van Zandt (2012)]:http://link.springer.com/article/10.1007/s11336-013-9381-x
 [Filippi et al 2013]:https://arxiv.org/abs/1106.6280
-- Restart files output frequently so an interrupted sampling run can be resumed at any iteration
-- Output and restart files are backed up every iteration before new output is written
+- Restart files output frequently so an interrupted run can be resumed at any iteration
+- Output and restart files are backed up every iteration 
 - User defined distance metric and simulation methods
 - A class for specifying heterogeneous parameter priors 
 - Methods for drawing from any non-standard prior PDF e.g using Planck/WMAP chains 
