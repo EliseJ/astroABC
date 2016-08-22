@@ -12,7 +12,6 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy nose scikit-learn mpi4py
 
-
 script:
   - nosetests  astroabc/tests.py
   - mpirun -np 2 nosetests astroabc/mpi_test.py
