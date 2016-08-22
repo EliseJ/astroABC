@@ -2,7 +2,7 @@
 <a href="https://github.com/EliseJ/astroABC"><img src="https://github.com/EliseJ/astroABC/blob/master/abc_logo.001.jpeg"
 align="left" hspace="10" vspace="6"></a>
 
-
+**astroABC**
 
 <br>
 [![Build Status](https://travis-ci.org/EliseJ/astroABC.svg?branch=master)](https://travis-ci.com/EliseJ/astroABC)
