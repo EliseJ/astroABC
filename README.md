@@ -31,7 +31,7 @@ Author: Elise Jennings
 - A method for iterative adapting tolerance levels using the qth quantile of the distance for t iterations ([Turner & Van Zandt (2012)])
 - Scikit-learn covariance matrix estimation using [Ledoit-Wolf shrinkage] for singular matrices
 [Ledoit-Wolf shrinkage]:http://scikit-learn.org/stable/modules/covariance.html
-- A module for specifying particle covariance using method proposed by [Turner & Van Zandt (2012)], optimal covariance matrix  for a multivariate normal perturbation kernel ([Filippi et al 2013]) and a weighted covariance metric (Beaumont et al 2009)
+- A module for specifying particle covariance using method proposed by [Turner & Van Zandt (2012)], optimal covariance matrix  for a multivariate normal perturbation kernel, local covariance estimate using k nearest neighbours, ([Filippi et al 2013]) and a weighted covariance (Beaumont et al 2009)
 [Turner & Van Zandt (2012)]:http://link.springer.com/article/10.1007/s11336-013-9381-x
 [Filippi et al 2013]:https://arxiv.org/abs/1106.6280
 - Restart files output frequently so an interrupted run can be resumed at any iteration
