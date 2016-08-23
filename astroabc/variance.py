@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.covariance import ledoit_wolf
-
+from sklearn.neighbors import KDTree
+import sys
 
 class Variance(object):
 	'''General variance class'''
@@ -53,6 +54,70 @@ class TVZ(Variance):
 				return np.diag([2.*np.std(params[:,ii])**2 for ii in range(self.nparam)])
 			elif self.pert_kernel ==2:
 				return 2.*np.cov(params.T)
+
+class nearest_neighbour(Variance):
+        ''' Local weighted covariance matrix class using k nearest neighbours'''
+        def __init__(self,nparam,npart,pert_kernel):
+                ''' 
+                Input: 
+                nparam: parameter vector for all particles at iter t and t-1
+                npart: number of particles
+                pert_kernel: 1 component wise perturbation with local diag variance,
+                        2 multivariate perturbation based on local covariance
+                '''
+
+                Variance.__init__(self,nparam,True)
+                self.npart=npart
+                self.pert_kernel = pert_kernel
+
+        def get_var(self,t,pms,wgt,k_near):                                                     
+                '''Method to calculate the local weighted particle covariance matrix using k nn
+                https://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_covariance
+                Input:
+                t: iteration level
+                pms: parameter vector for all particles from previous iteration
+                wgt: weights from previous iteration
+		k_near: number of nearest neighbours to use in calculation
+                Returns:
+                        Twice the local weighted particle covariance
+                '''
+                tm1 = t-1
+		if  k_near > self.npart:
+                                print ("\t Too many nearest neighbours requested for the number of particles: k_near=%d npart=%d") % (k_near,self.npart)
+                                print "\t exiting..."
+                                sys.exit(0)
+		elif k_near < 2:
+				print ("\t k_near too small: k_near=%d.  Please choose k_near>=2") % (k_near)
+				print "\t exiting..."
+				sys.exit(0)
+                if t==0:
+                        return self.first_iter(t,pms)
+                else:
+			var_particles = np.zeros((self.npart,self.nparam,self.nparam))
+			leaf = 0.2*self.npart
+			tree = KDTree(pms,leaf_size = leaf)
+			for ll in range(self.npart):
+				#for each particle, find the k_near nearest neighbours and return their particle id
+				ind = tree.query(pms[ll].reshape(1,-1),k_near,sort_results=True,return_distance=False)
+				coeff = wgt[ind][0].sum() / (wgt[ind][0].sum()**2 - (wgt[ind][0]**2).sum())
+				wgt_mean = np.average(pms[ind][0], axis=0, weights=wgt[ind][0])
+         	                var = np.diag(np.zeros(self.nparam))
+                	        if self.pert_kernel ==1:
+                                	for kk in range(self.nparam):
+                                        	var[kk][kk] = coeff*np.sum(wgt[ind][0] * (pms[ind,kk] - wgt_mean[kk])**2)
+                        	elif self.pert_kernel ==2:
+                                	for kk in range(self.nparam):
+                                        	for jj in range(self.nparam):
+                                                	var[kk,jj] = coeff*np.sum(wgt[ind][0]*(pms[ind,kk] - wgt_mean[kk])*(pms[ind,jj] - wgt_mean[jj]))
+                                                	if kk == jj and var[kk,jj]==0: #delta function for one parameter
+                                                    		var[kk,jj] = 1.E-10
+				var_particles[ll] = 2*var
+					
+			return var_particles                
+
+
+
+
 
 class Filippi(Variance):
 	'''Filippi et al 2012, eq 12 & 13'''
@@ -135,22 +200,18 @@ class weighted_cov(Variance):
                 if t==0:
                 	return self.first_iter(t,pms)
                 else:
-			#print "weights",wgt
-			#print "Check", wgt.sum(), wgt.sum()**2, (wgt**2).sum()
 			coeff = wgt.sum() / (wgt.sum()**2 - (wgt**2).sum()) 
 			wgt_mean = np.average(pms, axis=0, weights=wgt)
 			var = np.diag(np.zeros(self.nparam))
 			if self.pert_kernel ==1:
-				#var = np.zeros(self.nparam)
 				for kk in range(self.nparam):
 					var[kk][kk] = coeff*np.sum(wgt * (pms[:,kk] - wgt_mean[kk])**2)
 			elif self.pert_kernel ==2:
-				#var = np.diag(np.zeros(self.nparam))
 				for kk in range(self.nparam):
 					for jj in range(self.nparam):
 						var[kk,jj] = coeff*np.sum(wgt*(pms[:,kk] - wgt_mean[kk])*(pms[:,jj] - wgt_mean[jj]))
                                                 if kk == jj and var[kk,jj]==0: #delta function for one parameter
-                                                    var[kk,jj] = 1.E-10
+                                                	var[kk,jj] = 1.E-10
 			return 2*var
 
 

@@ -23,7 +23,7 @@ def main():
 	print "\t True param value:", param
 
 	#make some fake data
-	data = astroabc.Model(model_type,nsamples).make_mock(param)
+	data = astroabc.Model(model_type,nsamples).make_mock(param, var=np.array([0.02,0.01,0.01,0.1]))
 
 	#Create an instance of the ABC class	
 	sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)

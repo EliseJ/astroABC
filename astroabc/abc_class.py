@@ -35,9 +35,25 @@ class ABC_class(object):
 			niter: number of iteration levels
 			priors: list of tuples (priorname, [hyperparameters for prior])
 			kwargs: dictionary of key words ; defaults given below
+			tol_type: tolerance level setting. Can be "linear","log", "exp", "const". 
+			verbose: 0 = no output to screen, 1  = print out to screen
+			adapt_t: Boolean True/False for adaptive threshold setting
+			threshold: quantile level if adapt_t == True.
+			pert_kernel: 1 =  component wise perturbation with local diag variance; 2 = multivariate perturbation based on local covariance
+			variance_method: 0=Weighted covariance, 1=Filippi et al 2012, eq 12 & 13, 2=Simple variance estimate (Turner & Van Zandt 2012), 3=Leodoit_Wolf, 4=k-nn
+			k_near: int, number of nearest neighbours for local covariance
+			dist_type: string, distance metric method. Default is "user"
+			dfunc: method name when dist_type == user"
+			datacov: string, data covariance file if needed in distance metric
+			outfile: string, name of output file 
+			mpi: Boolean, True/False
+			mp: Boolean, True/False
+			num_proc: int, if mp=True
+			restart: string, name of restart file
+			from_restart: Boolean, True/False
 		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
-		'threshold':75,'pert_kernel':1,'variance_method':0, 'dist_type': "user",
+		'threshold':75,'pert_kernel':1,'variance_method':0,'k_near':5,'dist_type': "user",         
 		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,
 		'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
@@ -74,6 +90,8 @@ class ABC_class(object):
 			self.Variance = TVZ(nparam,self.pert_kernel) 
 		elif self.variance_method ==3:
 			self.Variance = Leodoit_Wolf(nparam,self.pert_kernel) 
+		elif self.variance_method == 4:
+			self.Variance = nearest_neighbour(nparam,npart,self.pert_kernel)         
 		else: #default
 			self.Variance = weighted_cov(nparam,npart,self.pert_kernel) 
 
@@ -122,16 +140,17 @@ class ABC_class(object):
 
 
 
-	def step(self,t):
+	def step(self,tup_in):
 		'''
 		Method for a single particle to propose a new point in parameter space
 		and accept it if rho(model(theta),data)<tol
 		Input:
-			t - iteration number
+			tup_in: tuple (t = iteration number, Pid = particle id)
 		Returns:
 			trial_t - array of new parameters \theta
 			rho - distance rho(x,y)
 		'''
+		t, Pid = tup_in
 		tm1=t-1
 		while True:
 			if t ==0: #draw from prior
@@ -142,7 +161,11 @@ class ABC_class(object):
                                 np.random.seed()
 				rpart = int(np.random.choice(self.npart,size=1,p=self.wgt[tm1]))
 				t_old = self.theta[tm1][rpart]		
-				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=self.variance,size=1))
+				if self.variance_method == 4:
+					covariance = self.variance[Pid]
+				else:
+					covariance = self.variance
+				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))   
 				x = self.model(trial_t)
 				rho = self.dist(x)
 			if rho <= self.tol[t]:
@@ -191,14 +214,11 @@ class ABC_class(object):
 			self.wgt[t] =1./self.npart
 		
 		if t: 	
-			if self.variance_method ==1:
-				self.variance = self.Variance.get_var(t,self.theta[t-1],self.Delta[t-1],self.tol[t-1],self.wgt[t-1])
-			elif self.variance_method ==2 or self.variance_method ==3:
-				self.variance = self.Variance.get_var(t,self.theta[t-1])
-			else:
-				self.variance = self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1])
+
+			self.variance = self.calculate_variance(t)
+
 		if self.mpi or self.mp:
-        		pool_outputs = self.pool.map(self.step, [t]*(self.npart))
+			pool_outputs = self.pool.map(self.step, zip([t]*(self.npart),range(self.npart)))
 			for i in range(self.npart):
 				if pool_outputs: # prevent error when mpi worker pool is closed 
 					self.theta[t][i],self.Delta[t][i]  = pool_outputs[i] 
@@ -208,8 +228,8 @@ class ABC_class(object):
 			if t:
 				self.wgt[t] = self.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
 		else:
-			for i in np.arange(self.npart):
-				self.theta[t][i],self.Delta[t][i] = self.step(t)
+			for i in np.arange(self.npart):                                          
+				self.theta[t][i],self.Delta[t][i] = self.step((t,i))			
 				if t:
 					self.wgt[t][i] = self.particle_weight((t,i))
 		#normalize
@@ -228,10 +248,21 @@ class ABC_class(object):
 			self.tol[t+1]=self.iteratively_adapt(t)
 		return t+1
 
+
+
+	def calculate_variance(self,t):
+		if self.variance_method ==1:
+			return self.Variance.get_var(t,self.theta[t-1],self.Delta[t-1],self.tol[t-1],self.wgt[t-1])
+		elif self.variance_method ==2 or self.variance_method ==3:
+			return self.Variance.get_var(t,self.theta[t-1])
+		elif self.variance_method == 4:
+			return self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1],self.k_near)
+		else:
+			return self.Variance.get_var(t,self.theta[t-1],self.wgt[t-1])
 		
 	def iteratively_adapt(self,t):
 		'''
-		Turner & Van Zandt (2012), use qth quantileof the distance for t iterations
+		Drovandi & Pettitt 2011, use qth quantileof the distance for t iterations
 		unless we hit the tmin requested
 		'''
 		new_tol= np.percentile(self.Delta[t], self.threshold)
@@ -247,26 +278,30 @@ class ABC_class(object):
                 input: 
                         tup_in is a tuple of (iter t,particle id Pid)
                 '''
-		t, Pid = tup_in
-                tm1 = t-1
+		t, Pid = tup_in								
+                tm1 = t-1 
 
                 # apply kernel to each particle's parameter vector
                 Kf = self.kernel(Pid,t)
                 kernels = Kf(self.theta[t-1])
-                if  np.any(self.wgt[tm1]) ==0 or np.any(kernels)==0:
+		if  np.any(self.wgt[tm1]) ==0 or np.any(kernels)==0:
                         print "Error computing Kernel or weights...", kernels, self.wgt[tm1]
                         sys.exit(1)
                 priorproduct = np.prod([f[0](f[1]) for f in np.vstack((self.priorprob,self.theta[t][Pid])).T])
 		return priorproduct/(np.sum(self.wgt[tm1]*kernels))
 
 
-        def kernel(self,Pid,t):
-                if np.linalg.det(self.variance) <1.E-15:
+        def kernel(self,Pid,t):                         
+		if self.variance_method == 4:
+		    covariance = self.variance[Pid]
+		else:
+		    covariance = self.variance
+                if np.linalg.det(covariance) <1.E-15:
                     #maybe singular matrix; check diagonals for small values
-                    print "Variance is a singular matrix", self.variance
+                    print "Variance is a singular matrix", covariance
                     print "using l2 shrinkage with the Ledoit-Wolf estimator..."
-                    self.variance, _  =  ledoit_wolf(self.theta[t])
-                return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=self.variance).pdf
+                    covariance, _  =  ledoit_wolf(self.theta[t])
+                return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance).pdf
 
 	#http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes
 	def __getstate__(self):

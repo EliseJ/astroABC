@@ -33,6 +33,7 @@ class ParseParams():
         self.threshold = config.getint('abc', 'threshold')
         self.pert_kernel= config.getint('abc', 'pert_kernel')
         self.var_method= config.getint('abc', 'variance_method')
+        self.k_near= config.getint('abc', 'k_near')
         self.dist_type= config.get('abc', 'dist_type')
         self.mpi = config.getboolean('abc', 'mpi')
         self.mp = config.getboolean('abc', 'mp')
