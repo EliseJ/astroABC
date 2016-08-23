@@ -59,6 +59,8 @@ class ABC_class(object):
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
 
+		self.split_mpicomm = True
+		self.num_abc = 2
 
 		if self.from_restart:
                 	backup_files(self.outfile)
@@ -71,8 +73,44 @@ class ABC_class(object):
 		elif self.mp:
 			self.pool = mp.Pool(self.num_proc)
 			self.master  = 0
+		elif self.split_mpicomm:
+			try:
+				self.comm = MPI.COMM_WORLD
+			except:
+				print "\n \t Please run using mpirun -np #proc if you want to run using mpi. \n\texiting ..."
+				sys.exit(0)
+			self.group=self.comm.Get_group()
+			if MPI.COMM_WORLD.Get_size() < num_abc:
+				raise RuntimeError("Please specify at least -np X nodes for X particles. exiting... num_abc= %d" % num_abc)
+			self.abc_ranks=np.arange(0,num_abc)
+			abc_group = self.group.Incl(self.abc_ranks)
+			self.abc_comm = self.comm.Create(abc_group) #only group members can use this communicator
+
+			self.sim_comms={} #dictionary of comms available to the abc particles currently running sim
+			num_sim = MPI.COMM_WORLD.Get_size()-num_abc
+			if num_sim % num_abc:
+				raise RuntimeError("Please specify equal num  mpi processors per particle running in parallel. \
+						exiting... num_sim % num_abc = %d" % (num_sim % num_abc))
+			for i in range(num_abc):
+				start_rank=num_abc+ int(num_sim/float(num_abc))*i
+				end_rank=num_abc+ int(num_sim/float(num_abc))*(i+1)
+				sim_ranks=[i] 
+				sim_ranks.append(list(np.arange(start_rank,end_rank)))
+				if verbose:
+					print "\n \t  MPI ranks for particle", i, sim_ranks
+				sim_group = self.group.Incl(sim_ranks)
+				self.sim_comms[i] = self.comm.Create(sim_group) #this comm can be used in a separate pool for the simulation
+				
+			#create pool for abc particles to use
+			if MPI.COMM_WORLD.Get_rank() in self.abc_ranks: #EJ redefine self.pool from using MPI.COMM to only using abc_comm 
+                        self.pool = MpiPool(comm=self.abc_comm) #NB self.pool is now redefined using only self.abc_ranks
+				
+		
 		else:
 			self.master =0
+		
+			
+
 		check_input(nparam,npart,priors,tlevels[0],tlevels[1],self.dist_type,self.datacov,self.dfunc)
 		
 		self.data = data
@@ -152,10 +190,17 @@ class ABC_class(object):
 		'''
 		t, Pid = tup_in
 		tm1=t-1
+		if self.split_mpicomm:
+			rank=MPI.COMM_WORLD.Get_rank()
+                        self.simulation_pool = MpiPool(comm=self.sim_comms[rank])
+			
 		while True:
 			if t ==0: #draw from prior
 				trial_t = [call_prior() for call_prior in self.prior]
-				x = self.model(trial_t)
+				if self.split_mpicomm:
+					x = self.model(trial_t,self.simulation_pool)
+				else:
+					x = self.model(trial_t)
 				rho = self.dist(x)
 			else:
                                 np.random.seed()
@@ -166,7 +211,10 @@ class ABC_class(object):
 				else:
 					covariance = self.variance
 				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))   
-				x = self.model(trial_t)
+				if self.split_mpicomm:
+					x = self.model(trial_t,self.simulation_pool)
+				else:
+					x = self.model(trial_t)
 				rho = self.dist(x)
 			if rho <= self.tol[t]:
 				break

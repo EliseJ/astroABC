@@ -6,9 +6,12 @@ except ImportError:
 
 class MpiPool(object):
 	'''mpi pool class'''
-	def __init__(self):
+	def __init__(self,comm=None):
 		'''initialize a communicator and set the rank and size '''
-		self.comm = MPI.COMM_WORLD
+		if comm==None:
+			self.comm = MPI.COMM_WORLD
+		else:
+			self.comm=comm
 		self.rank = MPI.COMM_WORLD.Get_rank()
 		self.size = MPI.COMM_WORLD.Get_size()
 
