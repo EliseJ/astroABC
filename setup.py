@@ -41,7 +41,7 @@ def setup_astroabc():
 	from numpy.distutils.core import setup
 	
 	setup(	name='astroabc',
-		version='1.0.2',
+		version='1.2.2',
 		author="Elise Jennings",
 		author_email="elise.jennings@gmail.com ",
 		url="https://github.com/EliseJ/astroABC",

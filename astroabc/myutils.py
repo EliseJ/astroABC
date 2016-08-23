@@ -45,7 +45,7 @@ def print_header(npart,niter,tol_type,tlevels,priors):
 	print "\t \t"
 	print "\t ########################     astroABC     ########################\t"
 	print "\t \t"
-	print "\t Npart=%d \t numt=%d \t tol=[%.2f,%.2f] %s"%(npart,niter,tlevels[0],tlevels[1], tol_type)
+	print "\t Npart=%d \t numt=%d \t tol=[%.4f,%.4f] %s"%(npart,niter,tlevels[0],tlevels[1], tol_type)
         print "\t Priors=", priors
 	
 
