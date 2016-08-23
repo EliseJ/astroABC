@@ -59,7 +59,7 @@ class ABC_class(object):
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
 
-		self.split_mpicomm = True
+		self.split_mpicomm = False
 		self.num_abc = 2
 
 		if self.from_restart:
