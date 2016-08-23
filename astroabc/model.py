@@ -7,7 +7,7 @@ class Model(object):
 		self.name=name
 		self.num=num
 	
-	def make_mock(self,param, var=0.05):
+	def make_mock(self,param, var=np.array([0.02,0.01,0.01,0.1])):
 		'''
 		Input: 
 			param: variable to generate either exponential data or Normal data with variance = var

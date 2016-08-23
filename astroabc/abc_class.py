@@ -21,6 +21,12 @@ import copy_reg
 import types
 from itertools import product
 
+try:
+        from mpi4py import MPI
+        MPI = MPI
+except ImportError:
+        MPI = None
+
 
 
 class ABC_class(object):
@@ -47,6 +53,8 @@ class ABC_class(object):
 			datacov: string, data covariance file if needed in distance metric
 			outfile: string, name of output file 
 			mpi: Boolean, True/False
+			mpi_splitcomm: Boolean, True/False
+			num_abc: int, number of procsessors for abc particles if split_mpicomm == True
 			mp: Boolean, True/False
 			num_proc: int, if mp=True
 			restart: string, name of restart file
@@ -54,17 +62,14 @@ class ABC_class(object):
 		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
 		'threshold':75,'pert_kernel':1,'variance_method':0,'k_near':5,'dist_type': "user",         
-		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,
-		'restart':None,'from_restart':False}
+		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,'mpi_splitcomm':False,
+		'num_abc':None,'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
 
-		self.split_mpicomm = False
-		self.num_abc = 2
-
 		if self.from_restart:
                 	backup_files(self.outfile)
-                if self.mpi:
+                if self.mpi and not self.mpi_splitcomm:
                         self.pool = MpiPool()
 			self.master = self.pool.rank
 			if self.pool.size ==1:
@@ -73,39 +78,42 @@ class ABC_class(object):
 		elif self.mp:
 			self.pool = mp.Pool(self.num_proc)
 			self.master  = 0
-		elif self.split_mpicomm:
+		elif self.mpi_splitcomm:
+			self.master = MPI.COMM_WORLD.Get_rank()
 			try:
 				self.comm = MPI.COMM_WORLD
 			except:
 				print "\n \t Please run using mpirun -np #proc if you want to run using mpi. \n\texiting ..."
 				sys.exit(0)
 			self.group=self.comm.Get_group()
-			if MPI.COMM_WORLD.Get_size() < num_abc:
+			if MPI.COMM_WORLD.Get_size() < self.num_abc:
 				raise RuntimeError("Please specify at least -np X nodes for X particles. exiting... num_abc= %d" % num_abc)
-			self.abc_ranks=np.arange(0,num_abc)
+			self.abc_ranks=np.arange(0,self.num_abc)
 			abc_group = self.group.Incl(self.abc_ranks)
 			self.abc_comm = self.comm.Create(abc_group) #only group members can use this communicator
 
+
 			self.sim_comms={} #dictionary of comms available to the abc particles currently running sim
-			num_sim = MPI.COMM_WORLD.Get_size()-num_abc
-			if num_sim % num_abc:
+			num_sim = MPI.COMM_WORLD.Get_size()-self.num_abc
+			if num_sim % self.num_abc:
 				raise RuntimeError("Please specify equal num  mpi processors per particle running in parallel. \
-						exiting... num_sim % num_abc = %d" % (num_sim % num_abc))
-			for i in range(num_abc):
-				start_rank=num_abc+ int(num_sim/float(num_abc))*i
-				end_rank=num_abc+ int(num_sim/float(num_abc))*(i+1)
+						exiting... num_sim % num_abc = %d" % (num_sim % self.num_abc))
+			self.all_sim_ranks = []
+			for i in range(self.num_abc):
+				start_rank=self.num_abc + int(num_sim/float(self.num_abc))*i
+				end_rank=self.num_abc + int(num_sim/float(self.num_abc))*(i+1)
 				sim_ranks=[i] 
-				sim_ranks.append(list(np.arange(start_rank,end_rank)))
-				if verbose:
-					print "\n \t  MPI ranks for particle", i, sim_ranks
+				for j in np.arange(start_rank,end_rank):
+					sim_ranks.append(j)
 				sim_group = self.group.Incl(sim_ranks)
 				self.sim_comms[i] = self.comm.Create(sim_group) #this comm can be used in a separate pool for the simulation
-				
+				if self.verbose and self.master ==0:
+					print "\n \t  MPI ranks for particle", i, sim_ranks
+				self.all_sim_ranks.append(sim_ranks)
 			#create pool for abc particles to use
-			if MPI.COMM_WORLD.Get_rank() in self.abc_ranks: #EJ redefine self.pool from using MPI.COMM to only using abc_comm 
-                        self.pool = MpiPool(comm=self.abc_comm) #NB self.pool is now redefined using only self.abc_ranks
-				
-		
+			if MPI.COMM_WORLD.Get_rank() in self.abc_ranks: 
+				self.pool = MpiPool(comm=self.abc_comm) #NB self.pool is now redefined using only self.abc_ranks
+				print "thgyt", MPI.COMM_WORLD.Get_rank(), self.pool
 		else:
 			self.master =0
 		
@@ -190,14 +198,11 @@ class ABC_class(object):
 		'''
 		t, Pid = tup_in
 		tm1=t-1
-		if self.split_mpicomm:
-			rank=MPI.COMM_WORLD.Get_rank()
-                        self.simulation_pool = MpiPool(comm=self.sim_comms[rank])
 			
 		while True:
 			if t ==0: #draw from prior
 				trial_t = [call_prior() for call_prior in self.prior]
-				if self.split_mpicomm:
+				if self.mpi_splitcomm:
 					x = self.model(trial_t,self.simulation_pool)
 				else:
 					x = self.model(trial_t)
@@ -211,13 +216,14 @@ class ABC_class(object):
 				else:
 					covariance = self.variance
 				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))   
-				if self.split_mpicomm:
+				if self.mpi_splitcomm:
 					x = self.model(trial_t,self.simulation_pool)
 				else:
 					x = self.model(trial_t)
 				rho = self.dist(x)
 			if rho <= self.tol[t]:
 				break
+		
 		return trial_t,rho
 
 
@@ -241,9 +247,27 @@ class ABC_class(object):
 			ctr=0
 
 		while self.end_sampling == False:
-			ctr = self.sample_loop(ctr)
+			if self.mpi_splitcomm: 
+				for i in np.arange(self.num_abc):
+					if MPI.COMM_WORLD.Get_rank() in self.all_sim_ranks[i]:
+						self.simulation_pool = MpiPool(comm=self.sim_comms[i])
+						print "I made a pool", MPI.COMM_WORLD.Get_rank()
+				if MPI.COMM_WORLD.Get_rank() in self.abc_ranks:
+					print "I'm sampling", MPI.COMM_WORLD.Get_rank()
+					ctr = self.sample_loop(ctr)
+				else: #worker node for sim, wait until pool is closed 
+					while True:
+						if not self.simulation_pool:
+							self.end_sampling = True
+			else:
+				ctr = self.sample_loop(ctr)
 		if self.mpi or self.mp:
-			self.pool.close()
+			if self.mpi_splitcomm: 
+                                if MPI.COMM_WORLD.Get_rank() in self.abc_ranks:
+					self.pool.close()
+					self.simulation_pool.close()
+			else:
+				self.pool.close()
 		
 	def sample_loop(self,t):
 		'''
@@ -255,8 +279,10 @@ class ABC_class(object):
 		input:
 			iter t
 		'''
+		
 		if  t+1 == self.niter or self.tol[t] == self.tmin:
 			self.end_sampling = True
+	
 
 		if not(t): 
 			self.wgt[t] =1./self.npart

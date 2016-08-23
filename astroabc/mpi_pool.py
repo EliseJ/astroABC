@@ -12,8 +12,8 @@ class MpiPool(object):
 			self.comm = MPI.COMM_WORLD
 		else:
 			self.comm=comm
-		self.rank = MPI.COMM_WORLD.Get_rank()
-		self.size = MPI.COMM_WORLD.Get_size()
+		self.rank = self.comm.Get_rank()
+		self.size = self.comm.Get_size()
 
 	def map(self, function, jobs):
 		'''
@@ -29,10 +29,10 @@ class MpiPool(object):
 		# If not the master just wait for instructions.
 		if not self.rank == 0:
 			self.worker()
-			return
+			return 
 
 		F = _func_wrapper(function)
-
+		print "INSIDE", self.size, jobs
 		req = [self.comm.isend(F, dest=i) for i in range(1,self.size)]
 		MPI.Request.waitall(req)
 		

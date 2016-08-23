@@ -36,6 +36,8 @@ class ParseParams():
         self.k_near= config.getint('abc', 'k_near')
         self.dist_type= config.get('abc', 'dist_type')
         self.mpi = config.getboolean('abc', 'mpi')
+        self.mpi_splitcomm = config.getboolean('abc', 'mpi_splitcomm')
+        self.num_abc= config.getint('abc', 'num_abc')
         self.mp = config.getboolean('abc', 'mp')
         self.num_proc= config.getint('abc', 'num_proc')
         self.outfile= config.get('abc', 'outfile')
