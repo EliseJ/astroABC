@@ -17,6 +17,7 @@ from model import *
 from io_utils import *
 from mpi_pool import MpiPool
 import multiprocessing as mp
+from setup_mpi_mp import *
 import copy_reg
 import types
 from itertools import product
@@ -27,6 +28,9 @@ try:
 except ImportError:
         MPI = None
 
+def test(i):
+        print i
+        return i
 
 
 class ABC_class(object):
@@ -69,55 +73,9 @@ class ABC_class(object):
 
 		if self.from_restart:
                 	backup_files(self.outfile)
-                if self.mpi and not self.mpi_splitcomm:
-                        self.pool = MpiPool()
-			self.master = self.pool.rank
-			if self.pool.size ==1:
-				print "\n \t Please run using mpirun -np #proc if you want to run using mpi. \n\texiting ..."
-				sys.exit(0)
-		elif self.mp:
-			self.pool = mp.Pool(self.num_proc)
-			self.master  = 0
-		elif self.mpi_splitcomm:
-			self.master = MPI.COMM_WORLD.Get_rank()
-			try:
-				self.comm = MPI.COMM_WORLD
-			except:
-				print "\n \t Please run using mpirun -np #proc if you want to run using mpi. \n\texiting ..."
-				sys.exit(0)
-			self.group=self.comm.Get_group()
-			if MPI.COMM_WORLD.Get_size() < self.num_abc:
-				raise RuntimeError("Please specify at least -np X nodes for X particles. exiting... num_abc= %d" % num_abc)
-			self.abc_ranks=np.arange(0,self.num_abc)
-			abc_group = self.group.Incl(self.abc_ranks)
-			self.abc_comm = self.comm.Create(abc_group) #only group members can use this communicator
-
-
-			self.sim_comms={} #dictionary of comms available to the abc particles currently running sim
-			num_sim = MPI.COMM_WORLD.Get_size()-self.num_abc
-			if num_sim % self.num_abc:
-				raise RuntimeError("Please specify equal num  mpi processors per particle running in parallel. \
-						exiting... num_sim % num_abc = %d" % (num_sim % self.num_abc))
-			self.all_sim_ranks = []
-			for i in range(self.num_abc):
-				start_rank=self.num_abc + int(num_sim/float(self.num_abc))*i
-				end_rank=self.num_abc + int(num_sim/float(self.num_abc))*(i+1)
-				sim_ranks=[i] 
-				for j in np.arange(start_rank,end_rank):
-					sim_ranks.append(j)
-				sim_group = self.group.Incl(sim_ranks)
-				self.sim_comms[i] = self.comm.Create(sim_group) #this comm can be used in a separate pool for the simulation
-				if self.verbose and self.master ==0:
-					print "\n \t  MPI ranks for particle", i, sim_ranks
-				self.all_sim_ranks.append(sim_ranks)
-			#create pool for abc particles to use
-			if MPI.COMM_WORLD.Get_rank() in self.abc_ranks: 
-				self.pool = MpiPool(comm=self.abc_comm) #NB self.pool is now redefined using only self.abc_ranks
-				print "thgyt", MPI.COMM_WORLD.Get_rank(), self.pool
-		else:
-			self.master =0
 		
-			
+
+		self.parallel = Parallel(self.mpi, self.mp,self.mpi_splitcomm, self.num_proc,self.num_abc,self.verbose)
 
 		check_input(nparam,npart,priors,tlevels[0],tlevels[1],self.dist_type,self.datacov,self.dfunc)
 		
@@ -143,9 +101,10 @@ class ABC_class(object):
 
 		self.unpack_priors(priors)
 		self.end_sampling = False
-		if self.verbose and self.master==0:
+		if self.verbose and self.parallel.master==0:
 			print_header(npart,niter,self.tol_type,tlevels,priors)
-		
+
+
 
 	def unpack_priors(self,priors):
 		'''
@@ -203,7 +162,11 @@ class ABC_class(object):
 			if t ==0: #draw from prior
 				trial_t = [call_prior() for call_prior in self.prior]
 				if self.mpi_splitcomm:
-					x = self.model(trial_t,self.simulation_pool)
+					#make a pool from specific comm
+					pool = self.parallel.sim_pool[1] 
+					print "rank",MPI.COMM_WORLD.Get_rank(), pool.rank, pool.size
+					#out = self.parallel.sim_pool[MPI.COMM_WORLD.Get_rank()].map(test,[1.1,2.1,3.1])
+					x = self.model(trial_t,self.parallel.simulation_pool[MPI.COMM_WORLD.Get_rank()])
 				else:
 					x = self.model(trial_t)
 				rho = self.dist(x)
@@ -217,7 +180,7 @@ class ABC_class(object):
 					covariance = self.variance
 				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))   
 				if self.mpi_splitcomm:
-					x = self.model(trial_t,self.simulation_pool)
+					x = self.model(trial_t,self.parallel.simulation_pool[MPI.COMM_WORLD.Get_rank()])
 				else:
 					x = self.model(trial_t)
 				rho = self.dist(x)
@@ -235,7 +198,7 @@ class ABC_class(object):
 		'''
 		self.model=model_simulator
 		
-		print "\t Running sampler...\t "
+		if self.parallel.rank ==0:print "\t Running sampler...\t "
 
 		if self.from_restart:
 			t,th,wgt,dist=read_restart_files(self.restart,self.nparam,self.npart)
@@ -248,26 +211,22 @@ class ABC_class(object):
 
 		while self.end_sampling == False:
 			if self.mpi_splitcomm: 
-				for i in np.arange(self.num_abc):
-					if MPI.COMM_WORLD.Get_rank() in self.all_sim_ranks[i]:
-						self.simulation_pool = MpiPool(comm=self.sim_comms[i])
-						print "I made a pool", MPI.COMM_WORLD.Get_rank()
-				if MPI.COMM_WORLD.Get_rank() in self.abc_ranks:
-					print "I'm sampling", MPI.COMM_WORLD.Get_rank()
+				if self.parallel.rank in self.parallel.abc_ranks:
 					ctr = self.sample_loop(ctr)
 				else: #worker node for sim, wait until pool is closed 
-					while True:
-						if not self.simulation_pool:
-							self.end_sampling = True
+					self.simulation_pool = MpiPool(comm=self.parallel.sim_comm)
+					self.simulation_pool.worker()
+					self.end_sampling = True
 			else:
 				ctr = self.sample_loop(ctr)
 		if self.mpi or self.mp:
-			if self.mpi_splitcomm: 
-                                if MPI.COMM_WORLD.Get_rank() in self.abc_ranks:
-					self.pool.close()
-					self.simulation_pool.close()
+			if self.mpi_splitcomm:
+				if self.parallel.rank in self.parallel.abc_ranks:
+					self.parallel.pool.close()
+					for i in self.parallel.abc_ranks[1:]:
+						self.parallel.simulation_pool_dict[i].close()
 			else:
-				self.pool.close()
+				self.parallel.pool.close()
 		
 	def sample_loop(self,t):
 		'''
@@ -292,7 +251,7 @@ class ABC_class(object):
 			self.variance = self.calculate_variance(t)
 
 		if self.mpi or self.mp:
-			pool_outputs = self.pool.map(self.step, zip([t]*(self.npart),range(self.npart)))
+			pool_outputs = self.parallel.pool.map(self.step, zip([t]*(self.npart),range(self.npart)))
 			for i in range(self.npart):
 				if pool_outputs: # prevent error when mpi worker pool is closed 
 					self.theta[t][i],self.Delta[t][i]  = pool_outputs[i] 
@@ -300,7 +259,7 @@ class ABC_class(object):
 					self.end_sampling = True
 					return  #pool is closed so worker just returns
 			if t:
-				self.wgt[t] = self.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
+				self.wgt[t] = self.parallel.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
 		else:
 			for i in np.arange(self.npart):                                          
 				self.theta[t][i],self.Delta[t][i] = self.step((t,i))			
@@ -310,13 +269,13 @@ class ABC_class(object):
 		self.wgt[t] = self.wgt[t]/np.sum(self.wgt[t])
 
 			
-                if self.outfile and self.master==0:
+                if self.outfile and self.parallel.master==0:
                 	write_to_file(t,self.outfile,self.nparam,self.npart,self.theta[t],self.Delta[t],self.wgt[t])
 			if self.restart and t:
 				write_restart_file(self.restart,t,self.theta[t],self.wgt[t],self.Delta[t],self.nparam,self.npart)
                 sys.stdout.flush()
 		
-		if self.verbose and self.master==0:
+		if self.verbose and self.parallel.master==0:
 			print "\t Step:",t,"\t tol:",self.tol[t],"\t Params:",[np.mean(self.theta[t][:,ii]) for ii in range(self.nparam)]
 		if self.adapt_t and t <self.niter-1:
 			self.tol[t+1]=self.iteratively_adapt(t)
@@ -372,45 +331,8 @@ class ABC_class(object):
 		    covariance = self.variance
                 if np.linalg.det(covariance) <1.E-15:
                     #maybe singular matrix; check diagonals for small values
-                    print "Variance is a singular matrix", covariance
-                    print "using l2 shrinkage with the Ledoit-Wolf estimator..."
+		    if self.verbose:
+                    	print "Variance is a singular matrix", covariance
+                    	print "using l2 shrinkage with the Ledoit-Wolf estimator..."
                     covariance, _  =  ledoit_wolf(self.theta[t])
                 return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance).pdf
-
-	#http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes
-	def __getstate__(self):
-		self_dict = self.__dict__.copy()
-		del self_dict['pool']
-		return self_dict
-
-	def __setstate__(self, state):
-		self.__dict__.update(state)
-
-	
-def _pickle_method(method):
-        """
-        http://stackoverflow.com/questions/11726809/
-        python-efficient-workaround-for-multiprocessing-a-function-that-is-a-data-member
-        """
-        func_name = method.im_func.__name__
-        obj = method.im_self
-        cls = method.im_class
-        cls_name = ''
-        if func_name.startswith('__') and not func_name.endswith('__'):
-                cls_name = cls.__name__.lstrip('_')
-        if cls_name:
-                func_name = '_' + cls_name + func_name
-        return _unpickle_method, (func_name, obj, cls)
-
-
-def _unpickle_method(func_name, obj, cls):
-        for cls in cls.mro():
-                try:
-                        func = cls.__dict__[func_name]
-                except KeyError:
-                        pass
-                else:
-                        break
-        return func.__get__(obj, cls)
-
-copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)

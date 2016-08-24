@@ -14,6 +14,7 @@ class MpiPool(object):
 			self.comm=comm
 		self.rank = self.comm.Get_rank()
 		self.size = self.comm.Get_size()
+		self.status = MPI.Status()
 
 	def map(self, function, jobs):
 		'''
@@ -32,7 +33,6 @@ class MpiPool(object):
 			return 
 
 		F = _func_wrapper(function)
-		print "INSIDE", self.size, jobs
 		req = [self.comm.isend(F, dest=i) for i in range(1,self.size)]
 		MPI.Request.waitall(req)
 		
