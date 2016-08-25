@@ -9,6 +9,11 @@ def dist(d,x):
         '''Distance metric: rho'''
         return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
+
+def simulation(param):
+        cov = 0.1
+        return Model("normal",1000).make_mock((param,cov))
+
 class test_abc:
 
 	def setUp(self):
@@ -25,7 +30,8 @@ class test_abc:
 		'restart':"restart_test.txt",'from_restart':False}
 
 		self.param = [0.1411]
-		self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
+		var = 0.1
+		self.data = Model(self.model_type,self.nsamples).make_mock((self.param,var))
 
 		priorname  = ["normal"]
 		hyperp = [[x+0.2  ,0.05*2] for x in self.param]
@@ -35,7 +41,7 @@ class test_abc:
 	def test_mpi(self):
 		self.prop['mpi']=True
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-		assert(sampler.pool)
+		assert(sampler.parallel.pool)
 		
 
 

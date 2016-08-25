@@ -12,32 +12,41 @@ from abc_class import *
 from parse_params import *
 import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
-param_file = os.path.join(ROOT_dir,'gaussian_params.ini')
+param_file = os.path.join(ROOT_dir,'gaussian_splitcomm_params.ini')
+
 
 def dist_metric(d,x):
 	'''Distance metric: rho'''
 	return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
 def simulation(param, pool=None):
-        #add code here to simulate data given parameters
-        cov =np.array([0.01,0.005,0.005,0.1])
-	return Model("normal",1000).make_mock((param,cov))
+	#add code here to simulate data given parameters
+	#below is simple simulation which draws 1000 random samples from a multiGaussian; 
+	#we map the make_mock method to the pool and divide up the work of simulating the data
+	cov =np.array([0.009,0.005,0.005,0.1])
+	if pool:
+		num_sim = pool.size - 1   #number of processors available to simulation
+		pool_outputs = pool.map(Model("normal",500).make_mock, zip([param]*2,[cov]*2) )	
+		sim_output = np.concatenate(pool_outputs)
+		return sim_output
+	else:
+		return Model("normal",1000).make_mock((param,cov))
+	
+	
 
 def main():
 
 	param = np.array([true_p0,true_p1])
-	print "\t True param value:", param
+	#print "\t True param value:", param
 
 	#make some fake data
-	#data = astroabc.Model(model_type,nsamples).make_mock((param, np.array([0.02,0.01,0.01,0.1])))
-	data = Model(model_type,nsamples).make_mock((param, np.array([0.01,0.005,0.005,0.1])))
-	
+	data = Model(model_type,nsamples).make_mock((param, np.array([0.009,0.005,0.005,0.1])))
 
 	#Create an instance of the ABC class	
-	#sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
 	sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
 
 	#specify the simulation method
+	#model_sim = astroabc.Model(model_type,nsamples).make_mock 
 	model_sim = simulation
 
 
@@ -50,7 +59,7 @@ def main():
 if __name__ == "__main__":
 	
 	pconfig = ParseParams(param_file)
-        if pconfig.verbose: print "parameters in file: ",  vars(pconfig)
+        #if pconfig.verbose: print "parameters in file: ",  vars(pconfig)
         
 	datafile =pconfig.datafile
 	model_type = pconfig.model_type
@@ -74,9 +83,11 @@ if __name__ == "__main__":
         else:
             num_proc = pconfig.num_proc
 
-        prop={'tol_type':pconfig.tol_type,"verbose":pconfig.verbose,'adapt_t':pconfig.adapt_t,'threshold':pconfig.threshold,
-        'pert_kernel':pconfig.pert_kernel,'variance_method':pconfig.var_method, 'dist_type': pconfig.dist_type,'dfunc':dist_metric, 'restart':restartF,
-        'outfile':outF,'mpi':pconfig.mpi,'mp':pconfig.mp,'num_proc':num_proc, 'from_restart':pconfig.from_restart}
+        prop={'tol_type':pconfig.tol_type,"verbose":pconfig.verbose,'adapt_t':pconfig.adapt_t,\
+	'threshold':pconfig.threshold,'pert_kernel':pconfig.pert_kernel,\
+	'variance_method':pconfig.var_method, 'dist_type': pconfig.dist_type,'dfunc':dist_metric, 'restart':restartF,\
+	'outfile':outF,'mpi':pconfig.mpi,'mp':pconfig.mp,'num_proc':num_proc, 'from_restart':pconfig.from_restart,\
+	 'mpi_splitcomm':pconfig.mpi_splitcomm, 'num_abc':pconfig.num_abc}
 
         ###########
         param_names = np.array(pconfig.pnames)
@@ -84,5 +95,4 @@ if __name__ == "__main__":
         hyperp = pconfig.hyperp
         prior = zip(priorname,hyperp)
 	main()
-
 

@@ -6,11 +6,15 @@ except ImportError:
 
 class MpiPool(object):
 	'''mpi pool class'''
-	def __init__(self):
+	def __init__(self,comm=None):
 		'''initialize a communicator and set the rank and size '''
-		self.comm = MPI.COMM_WORLD
-		self.rank = MPI.COMM_WORLD.Get_rank()
-		self.size = MPI.COMM_WORLD.Get_size()
+		if comm==None:
+			self.comm = MPI.COMM_WORLD
+		else:
+			self.comm=comm
+		self.rank = self.comm.Get_rank()
+		self.size = self.comm.Get_size()
+		self.status = MPI.Status()
 
 	def map(self, function, jobs):
 		'''
@@ -23,13 +27,13 @@ class MpiPool(object):
 		njobs = len(jobs)
 		self.function = function
 		
+		
 		# If not the master just wait for instructions.
 		if not self.rank == 0:
 			self.worker()
-			return
+			return 
 
 		F = _func_wrapper(function)
-
 		req = [self.comm.isend(F, dest=i) for i in range(1,self.size)]
 		MPI.Request.waitall(req)
 		

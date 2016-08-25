@@ -17,10 +17,68 @@ from model import *
 from io_utils import *
 from mpi_pool import MpiPool
 import multiprocessing as mp
+from setup_mpi_mp import *
 import copy_reg
 import types
 from itertools import product
 
+try:
+        from mpi4py import MPI
+        MPI = MPI
+except ImportError:
+        MPI = None
+
+def wrapper_func(i):
+	'''wrapper function to pass the correct sim pool to step() if mpi_splitcomm
+	Input:
+		tup_in: tuple (t = iteration number, Pid = particle id, weights, theta, variance, tol)
+	Output:
+		output from step() function
+	'''
+	if abcsampler.mpi_splitcomm:
+		return step(i,abcsampler.parallel.sim_pool)
+	else:
+		return step(i)
+
+def step(info_in,sim_pool=None):
+                '''
+                Function for a single particle to propose a new point in parameter space
+                and accept it if rho(model(theta),data)<tol
+                Input:
+                        tup_in: tuple (t = iteration number, Pid = particle id)
+                Returns:
+                        trial_t - array of new parameters \theta
+                        rho - distance rho(x,y)
+                '''
+                t, Pid,wgt,theta,variance,tol = info_in
+                tm1=t-1
+
+                while True:
+                        if t ==0: #draw from prior
+                                trial_t = [call_prior() for call_prior in abcsampler.prior]
+                                if abcsampler.mpi_splitcomm:
+                                        x = abcsampler.model(trial_t,sim_pool)
+                                else:
+                                        x = abcsampler.model(trial_t)
+                                rho = abcsampler.dist(x)
+                        else:
+                                np.random.seed()
+                                rpart = int(np.random.choice(abcsampler.npart,size=1,p=wgt[tm1]))
+                                t_old = theta[tm1][rpart]
+                                if abcsampler.variance_method == 4:
+                                        covariance = variance[Pid]
+                                else:
+                                        covariance = variance
+                                trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))
+                                if abcsampler.mpi_splitcomm:
+                                        x = abcsampler.model(trial_t,sim_pool)
+                                else:
+                                        x = abcsampler.model(trial_t)
+                                rho = abcsampler.dist(x)
+                        if rho <= tol[t]:
+                                break
+
+                return trial_t,rho
 
 
 class ABC_class(object):
@@ -47,6 +105,8 @@ class ABC_class(object):
 			datacov: string, data covariance file if needed in distance metric
 			outfile: string, name of output file 
 			mpi: Boolean, True/False
+			mpi_splitcomm: Boolean, True/False
+			num_abc: int, number of procsessors for abc particles if split_mpicomm == True
 			mp: Boolean, True/False
 			num_proc: int, if mp=True
 			restart: string, name of restart file
@@ -54,25 +114,20 @@ class ABC_class(object):
 		'''
 		prop_defaults={"tol_type":"exp","verbose":0,'adapt_t':False,
 		'threshold':75,'pert_kernel':1,'variance_method':0,'k_near':5,'dist_type': "user",         
-		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,
-		'restart':None,'from_restart':False}
+		'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,'mpi_splitcomm':False,
+		'num_abc':None,'restart':None,'from_restart':False}
 		for (prop, default) in prop_defaults.iteritems():
 			setattr(self, prop, kwargs.get(prop, default))
 
-
 		if self.from_restart:
                 	backup_files(self.outfile)
-                if self.mpi:
-                        self.pool = MpiPool()
-			self.master = self.pool.rank
-			if self.pool.size ==1:
-				print "\n \t Please run using mpirun -np #proc if you want to run using mpi. \n\texiting ..."
-				sys.exit(0)
-		elif self.mp:
-			self.pool = mp.Pool(self.num_proc)
-			self.master  = 0
-		else:
-			self.master =0
+
+		global abcsampler
+        	abcsampler = self  
+
+		#setup mpi or mp
+		self.parallel = Parallel(self.mpi, self.mp,self.mpi_splitcomm, self.num_proc,self.num_abc,self.verbose)
+
 		check_input(nparam,npart,priors,tlevels[0],tlevels[1],self.dist_type,self.datacov,self.dfunc)
 		
 		self.data = data
@@ -97,9 +152,10 @@ class ABC_class(object):
 
 		self.unpack_priors(priors)
 		self.end_sampling = False
-		if self.verbose and self.master==0:
+		if self.verbose and self.parallel.master==0:
 			print_header(npart,niter,self.tol_type,tlevels,priors)
 		
+
 
 	def unpack_priors(self,priors):
 		'''
@@ -117,6 +173,7 @@ class ABC_class(object):
 			pcls = Prior_class(p[0],p[1])
 			self.prior[i] = np.vectorize(pcls.prior)
 			self.priorprob[i]=np.vectorize(pcls.return_priorprob)
+
 	def allocate(self):
 		'''allocate numpy arrays for parameter values, weights and distances'''
 		self.theta=np.zeros([self.niter,self.npart,self.nparam])	
@@ -139,40 +196,6 @@ class ABC_class(object):
 			return self.dfunc(self.data,x)
 
 
-
-	def step(self,tup_in):
-		'''
-		Method for a single particle to propose a new point in parameter space
-		and accept it if rho(model(theta),data)<tol
-		Input:
-			tup_in: tuple (t = iteration number, Pid = particle id)
-		Returns:
-			trial_t - array of new parameters \theta
-			rho - distance rho(x,y)
-		'''
-		t, Pid = tup_in
-		tm1=t-1
-		while True:
-			if t ==0: #draw from prior
-				trial_t = [call_prior() for call_prior in self.prior]
-				x = self.model(trial_t)
-				rho = self.dist(x)
-			else:
-                                np.random.seed()
-				rpart = int(np.random.choice(self.npart,size=1,p=self.wgt[tm1]))
-				t_old = self.theta[tm1][rpart]		
-				if self.variance_method == 4:
-					covariance = self.variance[Pid]
-				else:
-					covariance = self.variance
-				trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))   
-				x = self.model(trial_t)
-				rho = self.dist(x)
-			if rho <= self.tol[t]:
-				break
-		return trial_t,rho
-
-
 	def sample(self,model_simulator):
 		'''
 		Begin sampling  
@@ -181,7 +204,7 @@ class ABC_class(object):
 		'''
 		self.model=model_simulator
 		
-		print "\t Running sampler...\t "
+		#if self.parallel.rank ==0:print "\t Running sampler...\t "
 
 		if self.from_restart:
 			t,th,wgt,dist=read_restart_files(self.restart,self.nparam,self.npart)
@@ -193,9 +216,23 @@ class ABC_class(object):
 			ctr=0
 
 		while self.end_sampling == False:
-			ctr = self.sample_loop(ctr)
+			if self.mpi_splitcomm: 
+				if self.parallel.rank in self.parallel.abc_ranks:
+					ctr = self.sample_loop(ctr)
+				else: #worker node for sim, wait until sim pool is closed 
+					self.parallel.sim_pool.worker()
+					self.end_sampling = True
+			else:
+				ctr = self.sample_loop(ctr)
+
 		if self.mpi or self.mp:
-			self.pool.close()
+			if self.mpi_splitcomm:
+				if self.parallel.rank in self.parallel.abc_ranks:
+					self.parallel.pool.close()
+					if self.parallel.rank !=0:
+						self.parallel.sim_pool.close()
+			else:
+				self.parallel.pool.close()
 		
 	def sample_loop(self,t):
 		'''
@@ -207,8 +244,10 @@ class ABC_class(object):
 		input:
 			iter t
 		'''
+		
 		if  t+1 == self.niter or self.tol[t] == self.tmin:
 			self.end_sampling = True
+	
 
 		if not(t): 
 			self.wgt[t] =1./self.npart
@@ -216,9 +255,17 @@ class ABC_class(object):
 		if t: 	
 
 			self.variance = self.calculate_variance(t)
+		else:
+			self.variance =0
 
 		if self.mpi or self.mp:
-			pool_outputs = self.pool.map(self.step, zip([t]*(self.npart),range(self.npart)))
+			if self.mp:
+				pool_outputs = self.parallel.pool.map(self.classstep, zip([t]*(self.npart),range(self.npart)))
+			else:
+				pool_outputs = self.parallel.pool.map(wrapper_func, zip([t]*(self.npart),\
+				range(self.npart),[self.wgt]*(self.npart),\
+				[self.theta]*(self.npart),[self.variance]*(self.npart), [self.tol]*(self.npart)))
+
 			for i in range(self.npart):
 				if pool_outputs: # prevent error when mpi worker pool is closed 
 					self.theta[t][i],self.Delta[t][i]  = pool_outputs[i] 
@@ -226,23 +273,23 @@ class ABC_class(object):
 					self.end_sampling = True
 					return  #pool is closed so worker just returns
 			if t:
-				self.wgt[t] = self.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
+				self.wgt[t] = self.parallel.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
 		else:
 			for i in np.arange(self.npart):                                          
-				self.theta[t][i],self.Delta[t][i] = self.step((t,i))			
+				self.theta[t][i],self.Delta[t][i] = step((t,i, self.wgt, self.theta, self.variance, self.tol))			
 				if t:
 					self.wgt[t][i] = self.particle_weight((t,i))
 		#normalize
 		self.wgt[t] = self.wgt[t]/np.sum(self.wgt[t])
 
 			
-                if self.outfile and self.master==0:
+                if self.outfile and self.parallel.master==0:
                 	write_to_file(t,self.outfile,self.nparam,self.npart,self.theta[t],self.Delta[t],self.wgt[t])
 			if self.restart and t:
 				write_restart_file(self.restart,t,self.theta[t],self.wgt[t],self.Delta[t],self.nparam,self.npart)
                 sys.stdout.flush()
 		
-		if self.verbose and self.master==0:
+		if self.verbose and self.parallel.master==0:
 			print "\t Step:",t,"\t tol:",self.tol[t],"\t Params:",[np.mean(self.theta[t][:,ii]) for ii in range(self.nparam)]
 		if self.adapt_t and t <self.niter-1:
 			self.tol[t+1]=self.iteratively_adapt(t)
@@ -298,45 +345,36 @@ class ABC_class(object):
 		    covariance = self.variance
                 if np.linalg.det(covariance) <1.E-15:
                     #maybe singular matrix; check diagonals for small values
-                    print "Variance is a singular matrix", covariance
-                    print "using l2 shrinkage with the Ledoit-Wolf estimator..."
+		    #if self.verbose:
+                    #	print "Variance is a singular matrix", covariance
+                    #	print "using l2 shrinkage with the Ledoit-Wolf estimator..."
                     covariance, _  =  ledoit_wolf(self.theta[t])
                 return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance).pdf
 
-	#http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes
-	def __getstate__(self):
-		self_dict = self.__dict__.copy()
-		del self_dict['pool']
-		return self_dict
+	def classstep(self,info_in):
+                '''
+		if mp==True.
+		copy of step function above; messy but necessary for mp which can't access global abcsampler -EJ
+                '''
+                t, Pid = info_in
+                tm1=t-1
 
-	def __setstate__(self, state):
-		self.__dict__.update(state)
-
-	
-def _pickle_method(method):
-        """
-        http://stackoverflow.com/questions/11726809/
-        python-efficient-workaround-for-multiprocessing-a-function-that-is-a-data-member
-        """
-        func_name = method.im_func.__name__
-        obj = method.im_self
-        cls = method.im_class
-        cls_name = ''
-        if func_name.startswith('__') and not func_name.endswith('__'):
-                cls_name = cls.__name__.lstrip('_')
-        if cls_name:
-                func_name = '_' + cls_name + func_name
-        return _unpickle_method, (func_name, obj, cls)
-
-
-def _unpickle_method(func_name, obj, cls):
-        for cls in cls.mro():
-                try:
-                        func = cls.__dict__[func_name]
-                except KeyError:
-                        pass
-                else:
-                        break
-        return func.__get__(obj, cls)
-
-copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+                while True:
+                        if t ==0: #draw from prior
+                                trial_t = [call_prior() for call_prior in self.prior]
+                                x = self.model(trial_t)
+                                rho = self.dist(x)
+                        else:
+                                np.random.seed()
+                                rpart = int(np.random.choice(self.npart,size=1,p=self.wgt[tm1]))
+                                t_old = self.theta[tm1][rpart]
+                                if self.variance_method == 4:
+                                        covariance = self.variance[Pid]
+                                else:
+                                        covariance = self.variance
+                                trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))
+                                x = self.model(trial_t)
+                                rho = self.dist(x)
+                        if rho <= self.tol[t]:
+                                break
+                return trial_t,rho
