@@ -1,9 +1,14 @@
 #simple example script for multiGaussian data
-try:
-	import astroabc
-except ImportError:
-	raise ImportError("Please install the astroABC package to use the sampler\n" +
-                            "$> pip install astroabc")
+#try:
+#	import astroabc
+#except ImportError:
+#	raise ImportError("Please install the astroABC package to use the sampler\n" +
+#                            "$> pip install astroabc")
+
+import sys
+sys.path.append("../astroabc")
+from abc_class import *
+
 from parse_params import *
 import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -13,9 +18,10 @@ def dist_metric(d,x):
 	'''Distance metric: rho'''
 	return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
-def simulation(param):
-	#add code here to simulate data given parameters
-	pass
+def simulation(param, pool=None):
+        #add code here to simulate data given parameters
+        cov =np.array([0.01,0.005,0.005,0.1])
+	return Model("normal",1000).make_mock((param,cov))
 
 def main():
 
@@ -23,16 +29,17 @@ def main():
 	print "\t True param value:", param
 
 	#make some fake data
-	data = astroabc.Model(model_type,nsamples).make_mock(param, var=np.array([0.02,0.01,0.01,0.1]))
+	#data = astroabc.Model(model_type,nsamples).make_mock((param, np.array([0.02,0.01,0.01,0.1])))
+	data = Model(model_type,nsamples).make_mock((param, np.array([0.01,0.005,0.005,0.1])))
+	
 
 	#Create an instance of the ABC class	
-	sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
+	#sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
+	sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
 
 	#specify the simulation method
-	model_sim = astroabc.Model(model_type,nsamples).make_mock 
+	model_sim = simulation
 
-	#or provide a method
-	#model_sim = simulation()
 
 	#Start sampling!
 	sampler.sample(model_sim)

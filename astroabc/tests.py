@@ -6,6 +6,10 @@ def dist(d,x):
         '''Distance metric: rho'''
         return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
+def simulation(param):
+	cov = np.diag([0.1,0.1])
+	return Model("normal",1000).make_mock((param,cov))
+
 class test_abc:
 
 	def setUp(self):
@@ -22,7 +26,8 @@ class test_abc:
 		'restart':"restart_test.txt",'from_restart':False}
 
 		self.param = [0.1411,0.8723]
-		self.data = Model(self.model_type,self.nsamples).make_mock(self.param)
+		cov = np.diag([0.1,0.1])
+		self.data = Model(self.model_type,self.nsamples).make_mock((self.param,cov))
 
 		priorname  = ["normal", "normal"]
 		hyperp = [[x+0.2  ,0.05*2] for x in self.param]
@@ -31,7 +36,7 @@ class test_abc:
 
 	def test_sample(self):
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-		model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
 		sampler.sample(model_sim)
 		for i in range(self.niter):
 			param_means = [np.mean(sampler.theta[i][:,j]) for j in range(self.nparam)]
@@ -39,7 +44,7 @@ class test_abc:
 				assert(param_means[p] < np.inf)
 	def test_restart(self):
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**self.prop)
-		model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
 		sampler.sample(model_sim)
 
 		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
@@ -48,7 +53,7 @@ class test_abc:
                 'restart':"restart_test.txt",'from_restart':True}
 
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,5,self.prior,**prop)
-		model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
 		sampler.sample(model_sim)
 		param_means = [np.mean(sampler.theta[-1][:,j]) for j in range(self.nparam)]
 		for p in range(self.nparam):
@@ -87,7 +92,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-		model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
 		sampler.sample(model_sim)
 		for p1 in range(self.nparam):
 			assert(sampler.variance[p1][p1] < np.inf)
@@ -98,7 +103,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
                 sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         for p2 in range(self.nparam):
@@ -111,7 +116,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
@@ -122,7 +127,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
                 sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
@@ -133,7 +138,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
                 sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
@@ -144,7 +149,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
                 sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)
@@ -155,7 +160,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':False,'num_proc':None,
                 'restart':"restart_test.txt",'from_restart':False}
                 sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,3,self.prior,**prop)
-                model_sim = Model(self.model_type,self.nsamples).make_mock
+		model_sim = simulation
                 sampler.sample(model_sim)
                 for p1 in range(self.nparam):
                         assert(sampler.variance[p1][p1] < np.inf)

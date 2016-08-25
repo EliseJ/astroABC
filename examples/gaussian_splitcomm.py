@@ -14,9 +14,6 @@ import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
 param_file = os.path.join(ROOT_dir,'gaussian_splitcomm_params.ini')
 
-def test(i):
-	print i
-	return i
 
 def dist_metric(d,x):
 	'''Distance metric: rho'''
@@ -29,7 +26,7 @@ def simulation(param, pool=None):
 	cov =np.array([0.009,0.005,0.005,0.1])
 	if pool:
 		num_sim = pool.size - 1   #number of processors available to simulation
-		pool_outputs = pool.map(Model("normal",500).make_mock, zip([param]*num_sim,[cov]*num_sim) )	
+		pool_outputs = pool.map(Model("normal",500).make_mock, zip([param]*2,[cov]*2) )	
 		sim_output = np.concatenate(pool_outputs)
 		return sim_output
 	else:

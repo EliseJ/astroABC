@@ -58,6 +58,7 @@ class Parallel(object):
 
 			if MPI.COMM_WORLD.Get_size() < self.num_abc:
 				raise RuntimeError("Please specify at least -np X nodes for X particles. exiting... num_abc= %d" % num_abc)
+				sys.exit(1)
 			#set up group for abc sampler first
 			self.abc_ranks=np.arange(0,self.num_abc)
 			abc_group = self.group.Incl(self.abc_ranks)
@@ -66,9 +67,13 @@ class Parallel(object):
 				self.pool = MpiPool(comm=self.abc_comm)
 
 			num_sim = MPI.COMM_WORLD.Get_size()-self.num_abc
+			if num_sim ==0:
+				raise RuntimeError("To the MPI comm please specify more nodes. Exiting... num_sim %d" % num_sim)
+				sys.exit(1)
 			if num_sim % (self.num_abc-1):   #every worker node doing abc has same number of node for simulation
 				raise RuntimeError("Please specify equal num  mpi processors per node running abc in parallel. \
 				exiting... num_sim % (num_abc-1) = %d" % (num_sim % (self.num_abc-1)))
+				sys.exit(1)
 
 			#set up groups for simulation pool
 			self.sim_comms={} 
@@ -81,17 +86,17 @@ class Parallel(object):
 					sim_ranks.append(j)
 				sim_group = self.group.Incl(sim_ranks)
 				self.sim_comms[i] = self.comm.Create(sim_group) 
-				if self.verbose and self.master ==0:
-					print "\n \t  MPI ranks for simulating on node", i,":", sim_ranks
 				self.all_sim_ranks.append(sim_ranks)
+			if self.verbose and self.master ==0:
+				print "\n \t  MPI ranks for divided up:", self.all_sim_ranks
         
 
 			self.sim_pool={}	
-			for i in range(1,self.num_abc):
-				if self.rank in self.all_sim_ranks[i]:
+			for i,rank_list in enumerate(self.all_sim_ranks):
+				if self.rank in rank_list and self.rank !=0:
 					self.sim_pool = MpiPool(comm=self.sim_comms[i])
-				else:
-					self.sim_pool=None #only node=0 won't have sim_pool
+					
+			if self.rank ==0: self.sim_pool=None #only node=0 won't have sim_pool
 
 
 #http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes

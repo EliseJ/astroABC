@@ -259,8 +259,13 @@ class ABC_class(object):
 			self.variance =0
 
 		if self.mpi or self.mp:
-			pool_outputs = self.parallel.pool.map(wrapper_func, zip([t]*(self.npart),range(self.npart),[self.wgt]*(self.npart),\
-			[self.theta]*(self.npart),[self.variance]*(self.npart), [self.tol]*(self.npart)))
+			if self.mp:
+				pool_outputs = self.parallel.pool.map(self.classstep, zip([t]*(self.npart),range(self.npart)))
+			else:
+				pool_outputs = self.parallel.pool.map(wrapper_func, zip([t]*(self.npart),\
+				range(self.npart),[self.wgt]*(self.npart),\
+				[self.theta]*(self.npart),[self.variance]*(self.npart), [self.tol]*(self.npart)))
+
 			for i in range(self.npart):
 				if pool_outputs: # prevent error when mpi worker pool is closed 
 					self.theta[t][i],self.Delta[t][i]  = pool_outputs[i] 
@@ -271,7 +276,7 @@ class ABC_class(object):
 				self.wgt[t] = self.parallel.pool.map(self.particle_weight, zip([t]*(self.npart),range(self.npart)))
 		else:
 			for i in np.arange(self.npart):                                          
-				self.theta[t][i],self.Delta[t][i] = self.step((t,i))			
+				self.theta[t][i],self.Delta[t][i] = step((t,i, self.wgt, self.theta, self.variance, self.tol))			
 				if t:
 					self.wgt[t][i] = self.particle_weight((t,i))
 		#normalize
@@ -345,3 +350,31 @@ class ABC_class(object):
                     #	print "using l2 shrinkage with the Ledoit-Wolf estimator..."
                     covariance, _  =  ledoit_wolf(self.theta[t])
                 return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance).pdf
+
+	def classstep(self,info_in):
+                '''
+		if mp==True.
+		copy of step function above; messy but necessary for mp which can't access global abcsampler -EJ
+                '''
+                t, Pid = info_in
+                tm1=t-1
+
+                while True:
+                        if t ==0: #draw from prior
+                                trial_t = [call_prior() for call_prior in self.prior]
+                                x = self.model(trial_t)
+                                rho = self.dist(x)
+                        else:
+                                np.random.seed()
+                                rpart = int(np.random.choice(self.npart,size=1,p=self.wgt[tm1]))
+                                t_old = self.theta[tm1][rpart]
+                                if self.variance_method == 4:
+                                        covariance = self.variance[Pid]
+                                else:
+                                        covariance = self.variance
+                                trial_t = np.atleast_1d(scipy.stats.multivariate_normal.rvs(mean= t_old,cov=covariance,size=1))
+                                x = self.model(trial_t)
+                                rho = self.dist(x)
+                        if rho <= self.tol[t]:
+                                break
+                return trial_t,rho
