@@ -84,7 +84,7 @@ class test_abc:
                 'outfile':"mpi_test.txt",'mpi':False,'mp':True,'num_proc':2,
                 'restart':"restart_test.txt",'from_restart':False}
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**prop)
-		assert(sampler.pool)
+		assert(sampler.parallel.pool)
 
 	def test_weightedvariance_k1(self):
 		prop={'tol_type':'exp',"verbose":1,'adapt_t':True,'threshold':75,
