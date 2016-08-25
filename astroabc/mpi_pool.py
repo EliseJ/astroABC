@@ -27,6 +27,7 @@ class MpiPool(object):
 		njobs = len(jobs)
 		self.function = function
 		
+		
 		# If not the master just wait for instructions.
 		if not self.rank == 0:
 			self.worker()
