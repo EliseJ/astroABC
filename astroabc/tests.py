@@ -7,7 +7,7 @@ def dist(d,x):
         return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
 def simulation(param):
-	cov = np.diag([0.1,0.1])
+	cov = np.array([0.1,0,0,0.1])
 	return Model("normal",1000).make_mock((param,cov))
 
 class test_abc:
@@ -26,7 +26,7 @@ class test_abc:
 		'restart':"restart_test.txt",'from_restart':False}
 
 		self.param = [0.1411,0.8723]
-		cov = np.diag([0.1,0.1])
+		cov = np.array([0.1,0,0,0.1])
 		self.data = Model(self.model_type,self.nsamples).make_mock((self.param,cov))
 
 		priorname  = ["normal", "normal"]

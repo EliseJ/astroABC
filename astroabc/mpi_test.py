@@ -41,7 +41,7 @@ class test_abc:
 	def test_mpi(self):
 		self.prop['mpi']=True
 		sampler = ABC_class(self.nparam,self.npart,self.data,self.tlevels,self.niter,self.prior,**self.prop)
-		assert(sampler.pool)
+		assert(sampler.parallel.pool)
 		
 
 
