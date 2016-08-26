@@ -24,7 +24,7 @@ Author: Elise Jennings
 ## Key features ##
 
 - Parallel sampling using MPI or multiprocessing
-- MPI communicator can be split so both the sampler and simulation launched by each particle run in parallel
+- MPI communicator can be split so both the sampler, and simulation launched by each particle, can run in parallel
 - A Sequential Monte Carlo sampler (see e.g. [Toni et al. 2009], [Beaumont et al. 2009], [Sisson & Fan 2010])
 [Toni et al. 2009]:https://arxiv.org/abs/0901.1925
 [Sisson & Fan 2010]:http://arxiv.org/abs/1001.2058
