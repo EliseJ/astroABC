@@ -14,6 +14,7 @@ align="left" hspace="10" vspace="6"></a>
 
 Author: Elise Jennings
 
+[arxiv:1608.07606](http://arxiv.org/abs/1608.07606)
 
 **astroABC** is a Python implementation of an Approximate Bayesian Computation Sequential Monte Carlo (ABC SMC) sampler for parameter estimation. 
 
