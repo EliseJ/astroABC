@@ -7,6 +7,14 @@ c_km_per_s = 299792.458
 
 class DistanceCalc(object):
     def __init__(self,om,ok,ol,wmodel,de_params,h0):
+    	'''
+    	om = omega_matter
+    	ok = omega curvature
+    	ol = omega lambda
+    	wmodel= -1 for LCDM(w0=-1), 0 for (w0,wa) parametrisation, 1 for w0,wa,ap parametrization, 2 for early dark energy
+    	de_params = -1 (if wmodel=-1), =[w0,wa] (if wmodel==0 )
+    	h0 = hubble constant e.g. 0.7
+    	'''
         self.om=om
         self.ol=ol
         self.ok=ok
