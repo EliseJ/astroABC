@@ -28,7 +28,7 @@ def bin_data(z,mu,err,Nbins=10):
     return  zbins, avmu_bin,averr_bin,mu_in_bin,mu_in_bin
 
 def read_data():
-	data = read_fitres("OUT2_SALT2mu+wOL.fitres")
+	data = read_fitres("example_data_file.txt")
 
 	#Keep data points with z>0.5
 	z_new = data['z'][0]
