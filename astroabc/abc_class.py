@@ -349,7 +349,7 @@ class ABC_class(object):
                     #	print "Variance is a singular matrix", covariance
                     #	print "using l2 shrinkage with the Ledoit-Wolf estimator..."
                     covariance, _  =  ledoit_wolf(self.theta[t])
-                return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance).pdf
+                return scipy.stats.multivariate_normal(mean=self.theta[t][Pid],cov=covariance,allow_singular=True).pdf
 
 	def classstep(self,info_in):
                 '''
