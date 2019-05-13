@@ -1,8 +1,11 @@
-from mpi_pool import MpiPool
+
+
+from .mpi_pool import MpiPool
 import multiprocessing as mp
 import numpy as np
-import copy_reg
 import types
+from six.moves import copyreg
+
 import sys
 
 try:
@@ -134,6 +137,6 @@ def _unpickle_method(func_name, obj, cls):
                         break
         return func.__get__(obj, cls)
 
-copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+copyreg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 

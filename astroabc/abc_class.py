@@ -9,18 +9,18 @@ from sklearn.covariance import GraphLassoCV, ledoit_wolf
 import os
 sys.path.append(os.getcwd())
 
-from myutils import *
-from tolerance import *
-from variance import *
-from priors import *
-from model import *
-from io_utils import *
-from mpi_pool import MpiPool
-import multiprocessing as mp
-from setup_mpi_mp import *
-import copy_reg
-import types
-from itertools import product
+from .myutils import *
+from .tolerance import *
+from .variance import *
+from .priors import *
+from .model import *
+from .io_utils import *
+#from .mpi_pool import MpiPool
+#import multiprocessing as mp
+from .setup_mpi_mp import *
+#from six.moves import copyreg
+#import types
+#from itertools import product
 
 try:
         from mpi4py import MPI
