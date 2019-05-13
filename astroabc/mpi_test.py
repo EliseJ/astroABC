@@ -12,7 +12,7 @@ def dist(d,x):
 
 def simulation(param):
         cov = 0.1
-        return Model("normal",1000).make_mock((param,cov))
+        return Model("normal",1000).make_mock(param,cov)
 
 class test_abc:
 
@@ -31,7 +31,7 @@ class test_abc:
 
                 self.param = [0.1411]
                 var = 0.1
-                self.data = Model(self.model_type,self.nsamples).make_mock((self.param,var))
+                self.data = Model(self.model_type,self.nsamples).make_mock(self.param,var)
 
                 priorname  = ["normal"]
                 hyperp = [[x+0.2  ,0.05*2] for x in self.param]

@@ -27,7 +27,7 @@ class test_abc:
 
                 self.param = [0.1411,0.8723]
                 cov = np.array([0.1,0,0,0.1])
-                self.data = Model(self.model_type,self.nsamples).make_mock((self.param,cov))
+                self.data = Model(self.model_type,self.nsamples).make_mock(self.param,cov)
 
                 priorname  = ["normal", "normal"]
                 hyperp = [[x+0.2  ,0.05*2] for x in self.param]

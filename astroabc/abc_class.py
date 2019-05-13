@@ -15,12 +15,8 @@ from .variance import *
 from .priors import *
 from .model import *
 from .io_utils import *
-#from .mpi_pool import MpiPool
-#import multiprocessing as mp
+import six
 from .setup_mpi_mp import *
-#from six.moves import copyreg
-#import types
-#from itertools import product
 
 try:
         from mpi4py import MPI
@@ -116,7 +112,7 @@ class ABC_class(object):
                 'threshold':75,'pert_kernel':1,'variance_method':0,'k_near':5,'dist_type': "user",
                 'dfunc':None,'datacov':None,'outfile':'abc_out.txt','mpi': None, 'mp':None,'num_proc':None,'mpi_splitcomm':False,
                 'num_abc':None,'restart':None,'from_restart':False}
-                for (prop, default) in prop_defaults.iteritems():
+                for (prop, default) in six.iteritems(prop_defaults):
                         setattr(self, prop, kwargs.get(prop, default))
 
                 if self.from_restart:

@@ -16,7 +16,7 @@ def check_input(nparam,npart,priors,t1,t2,dtype,datacov,dfunc):
                 print(("\t Too few particles requested for the number of parameters. npart=%d nparam=%d") % (npart,nparam))
                 print("\t exiting...")
                 sys.exit(0)
-        if nparam != len(priors):
+        if nparam != len(list(priors)):
                 print(("\t Incorrect number of priors given for %d params") % nparam)
                 print("\t exiting...")
                 sys.exit(0)
