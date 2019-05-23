@@ -1,5 +1,5 @@
 import numpy as np
-from astroabc.abc_class import *
+from .abc_class import *
 
 
 def dist(d,x):

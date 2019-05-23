@@ -6,18 +6,18 @@ import numpy as np
 import scipy.stats
 import sys
 from sklearn.covariance import GraphLassoCV, ledoit_wolf
-import os
-sys.path.append(os.getcwd())
+#import os
+#sys.path.append(os.getcwd())
 
 import six
 
-from astroabc.myutils import *
-from astroabc.tolerance import *
-from astroabc.variance import *
-from astroabc.priors import *
-from astroabc.model import *
-from astroabc.io_utils import *
-from astroabc.setup_mpi_mp import *
+from .myutils import *
+from .tolerance import *
+from .variance import *
+from .priors import *
+from .model import *
+from .io_utils import *
+from .setup_mpi_mp import *
 
 try:
         from mpi4py import MPI

@@ -5,11 +5,9 @@
 #	raise ImportError("Please install the astroABC package to use the sampler\n" +
 #                            "$> pip install astroabc")
 
-#import sys
-#sys.path.append("../astroabc")
 from astroabc.abc_class import *
 
-from examples.parse_params import *
+from parse_params import *
 import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
 param_file = os.path.join(ROOT_dir,'gaussian_params.ini')
