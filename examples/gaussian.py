@@ -15,49 +15,49 @@ ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
 param_file = os.path.join(ROOT_dir,'gaussian_params.ini')
 
 def dist_metric(d,x):
-	'''Distance metric: rho'''
-	return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
+        '''Distance metric: rho'''
+        return np.sum(np.abs(np.mean(x,axis=0) - np.mean(d,axis=0)))
 
 def simulation(param, pool=None):
         #add code here to simulate data given parameters
         cov =np.array([0.01,0.005,0.005,0.1])
-	return Model("normal",1000).make_mock((param,cov))
+        return Model("normal",1000).make_mock((param,cov))
 
 def main():
 
-	param = np.array([true_p0,true_p1])
-	print "\t True param value:", param
+        param = np.array([true_p0,true_p1])
+        print "\t True param value:", param
 
-	#make some fake data
-	#data = astroabc.Model(model_type,nsamples).make_mock((param, np.array([0.02,0.01,0.01,0.1])))
-	data = Model(model_type,nsamples).make_mock((param, np.array([0.01,0.005,0.005,0.1])))
-	
-
-	#Create an instance of the ABC class	
-	#sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
-	sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
-
-	#specify the simulation method
-	model_sim = simulation
+        #make some fake data
+        #data = astroabc.Model(model_type,nsamples).make_mock((param, np.array([0.02,0.01,0.01,0.1])))
+        data = Model(model_type,nsamples).make_mock((param, np.array([0.01,0.005,0.005,0.1])))
 
 
-	#Start sampling!
-	sampler.sample(model_sim)
+        #Create an instance of the ABC class
+        #sampler = astroabc.ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
+        sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)
+
+        #specify the simulation method
+        model_sim = simulation
+
+
+        #Start sampling!
+        sampler.sample(model_sim)
 
 
 
 
 if __name__ == "__main__":
-	
-	pconfig = ParseParams(param_file)
+
+        pconfig = ParseParams(param_file)
         if pconfig.verbose: print "parameters in file: ",  vars(pconfig)
         
-	datafile =pconfig.datafile
-	model_type = pconfig.model_type
-	nsamples = pconfig.nsamples
-	true_p0 = pconfig.true_p0
-	true_p1 = pconfig.true_p1
-	#########
+        datafile =pconfig.datafile
+        model_type = pconfig.model_type
+        nsamples = pconfig.nsamples
+        true_p0 = pconfig.true_p0
+        true_p1 = pconfig.true_p1
+        #########
         #Parameters of abc run, these are global
         ########
         nparam =pconfig.nparam
@@ -83,6 +83,6 @@ if __name__ == "__main__":
         priorname  = pconfig.priors
         hyperp = pconfig.hyperp
         prior = zip(priorname,hyperp)
-	main()
+        main()
 
 
