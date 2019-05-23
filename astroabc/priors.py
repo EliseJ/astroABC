@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.stats
-import time
 
 from scipy.interpolate import interp1d, UnivariateSpline
 

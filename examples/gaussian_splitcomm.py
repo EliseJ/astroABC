@@ -5,11 +5,11 @@
 #	raise ImportError("Please install the astroABC package to use the sampler\n" +
 #                            "$> pip install astroabc")
 
-import sys
-sys.path.append("../astroabc")
-from abc_class import *
+#import sys
+#sys.path.append("../astroabc")
+from astroabc.abc_class import *
 
-from parse_params import *
+from examples.parse_params import *
 import os
 ROOT_dir = os.path.split(os.path.abspath(__file__))[0]
 param_file = os.path.join(ROOT_dir,'gaussian_splitcomm_params.ini')
@@ -30,7 +30,7 @@ def simulation(param, pool=None):
                 sim_output = np.concatenate(pool_outputs)
                 return sim_output
         else:
-                return Model("normal",1000).make_mock((param,cov))
+                return Model("normal",1000).make_mock(param,cov)
 
 
 
@@ -40,7 +40,7 @@ def main():
         #print "\t True param value:", param
 
         #make some fake data
-        data = Model(model_type,nsamples).make_mock((param, np.array([0.009,0.005,0.005,0.1])))
+        data = Model(model_type,nsamples).make_mock(param, np.array([0.009,0.005,0.005,0.1]))
 
         #Create an instance of the ABC class
         sampler = ABC_class(nparam,npart,data,tlevels,niter,prior,**prop)

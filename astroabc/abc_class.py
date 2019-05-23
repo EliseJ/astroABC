@@ -9,14 +9,15 @@ from sklearn.covariance import GraphLassoCV, ledoit_wolf
 import os
 sys.path.append(os.getcwd())
 
-from .myutils import *
-from .tolerance import *
-from .variance import *
-from .priors import *
-from .model import *
-from .io_utils import *
 import six
-from .setup_mpi_mp import *
+
+from astroabc.myutils import *
+from astroabc.tolerance import *
+from astroabc.variance import *
+from astroabc.priors import *
+from astroabc.model import *
+from astroabc.io_utils import *
+from astroabc.setup_mpi_mp import *
 
 try:
         from mpi4py import MPI
@@ -51,6 +52,7 @@ def step(info_in,sim_pool=None):
 
                 while True:
                         if t ==0: #draw from prior
+                                print(abcsampler.prior)
                                 trial_t = [call_prior() for call_prior in abcsampler.prior]
                                 if abcsampler.mpi_splitcomm:
                                         x = abcsampler.model(trial_t,sim_pool)

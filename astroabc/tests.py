@@ -1,5 +1,5 @@
 import numpy as np
-from .abc_class import *
+from astroabc.abc_class import *
 
 
 def dist(d,x):
@@ -8,7 +8,7 @@ def dist(d,x):
 
 def simulation(param):
         cov = np.array([0.1,0,0,0.1])
-        return Model("normal",1000).make_mock((param,cov))
+        return Model("normal",1000).make_mock(param,cov)
 
 class test_abc:
 

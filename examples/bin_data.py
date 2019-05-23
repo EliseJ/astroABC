@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 def read_fitres(fname):
                 dtype=[('z',np.float32),('mu',np.float32),('mu_err',np.float32)]
