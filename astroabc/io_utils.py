@@ -13,7 +13,7 @@ def write_to_file(t,outfile,nparam,npart,theta,delta,wgt):
         wgt - arr, weights at iteration t
         '''
         if t==0:
-                f = open(outfile,'w',0)
+                f = open(outfile,'w')
                 for ncount in range(nparam):
                         f.write("param#%s \t "%ncount)
                 f.write("dist \t  wgt \n")
@@ -48,7 +48,7 @@ def write_restart_file(restart,t,theta,wgt,dist,nparam,npart):
         wgts= wgt.flatten().reshape(npart,1)
         dists= dist.flatten().reshape(npart,1)
         output = np.hstack((data,dists,wgts))
-        f = open(restart,"w",0)
+        f = open(restart,"w")
         f.write("%f\n"%t)
         for o in output:
                 for indv in o:

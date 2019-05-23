@@ -52,7 +52,6 @@ def step(info_in,sim_pool=None):
 
                 while True:
                         if t ==0: #draw from prior
-                                print(abcsampler.prior)
                                 trial_t = [call_prior() for call_prior in abcsampler.prior]
                                 if abcsampler.mpi_splitcomm:
                                         x = abcsampler.model(trial_t,sim_pool)
