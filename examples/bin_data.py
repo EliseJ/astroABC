@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 def read_fitres(fname):
                 dtype=[('z',np.float32),('mu',np.float32),('mu_err',np.float32)]
@@ -28,21 +27,21 @@ def bin_data(z,mu,err,Nbins=10):
     return  zbins, avmu_bin,averr_bin,mu_in_bin,mu_in_bin
 
 def read_data():
-	data = read_fitres("example_data_file.txt")
+        data = read_fitres("example_data_file.txt")
 
-	#Keep data points with z>0.5
-	z_new = data['z'][0]
-	mu_new = data['mu'][0]
-	err_new = data['mu_err'][0]
+        #Keep data points with z>0.5
+        z_new = data['z'][0]
+        mu_new = data['mu'][0]
+        err_new = data['mu_err'][0]
 
-	for i in range(1,345):
-	    if data['z'][i] >= 0.5:
-        	z_new = np.append(z_new,data['z'][i])
-        	mu_new = np.append(mu_new,data['mu'][i])
-		err_new = np.append(err_new,data['mu_err'][i])
+        for i in range(1,345):
+            if data['z'][i] >= 0.5:
+                z_new = np.append(z_new,data['z'][i])
+                mu_new = np.append(mu_new,data['mu'][i])
+                err_new = np.append(err_new,data['mu_err'][i])
 
-	#bin this data
-	zbins,avmu_bin,averr_bin,mu_in_bin_new,mu_in_bin_new = bin_data(z_new,mu_new,err_new,Nbins=20)
-	return zbins,avmu_bin,averr_bin,mu_in_bin_new,mu_in_bin_new
+        #bin this data
+        zbins,avmu_bin,averr_bin,mu_in_bin_new,mu_in_bin_new = bin_data(z_new,mu_new,err_new,Nbins=20)
+        return zbins,avmu_bin,averr_bin,mu_in_bin_new,mu_in_bin_new
 
 
