@@ -149,6 +149,7 @@ class ABC_class(object):
 
                 self.unpack_priors(priors)
                 self.end_sampling = False
+
                 if self.verbose and self.parallel.master==0:
                         print_header(npart,niter,self.tol_type,tlevels,priors)
 
