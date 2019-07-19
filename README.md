@@ -21,11 +21,10 @@ Astronomy and Computing  DOI:10.1016/j.ascom.2017.01.001
 **astroABC** is a Python implementation of an Approximate Bayesian Computation Sequential Monte Carlo (ABC SMC) sampler for parameter estimation. 
 
 
-<br>
-<br>
-## Recent applications##
 
-astroABC has been used in research by Mor et al. at the University of Barcelona. Nature Research Highlight: 
+## Recent applications
+
+Mor et al. at the University of Barcelona have used astroABC to analyze data from the Gaia satellite. Nature Research Highlight: 
 [The cosmic drama that helped to build the Milky Way](https://www.nature.com/articles/d41586-019-01226-2)
 <br>
 <br>
