@@ -23,9 +23,9 @@ Astronomy and Computing  DOI:10.1016/j.ascom.2017.01.001
 
 <br>
 <br>
-**Recent news**
+## Recent applications##
 
-astroABC has been used in research by Mor et al. at the University of Barcelona which appears in a Nature Research Highlight. 
+astroABC has been used in research by Mor et al. at the University of Barcelona. Nature Research Highlight: 
 [The cosmic drama that helped to build the Milky Way](https://www.nature.com/articles/d41586-019-01226-2)
 <br>
 <br>
