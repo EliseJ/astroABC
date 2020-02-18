@@ -61,7 +61,7 @@ For more information please read the [wiki](https://github.com/EliseJ/astroABC/w
 Install astroABC using pip
 
 ```
-$ pip install astroabc
+$ pip install astroabc==1.5.0
 ```
 
 or git clone the repository using the url above. 
